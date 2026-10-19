@@ -2814,6 +2814,95 @@ function tutupDetailProfilLembaga() {
   if (panel) panel.classList.add('hidden');
 }
 document.addEventListener('DOMContentLoaded', renderKartuProfilLembaga);
+    
+let pemindaiAbsensiGuru = null;
+let prosesScanGuru = false;
+
+async function mulaiScanAbsensiGuru() {
+  const status = document.getElementById("statusScanGuru");
+  const reader = document.getElementById("readerAbsensiGuru");
+
+  if (!reader) {
+    if (status) status.textContent = "Area pemindai tidak ditemukan.";
+    return;
+  }
+
+  if (typeof Html5Qrcode === "undefined") {
+    if (status) status.textContent = "Pustaka pemindai QR belum termuat. Muat ulang halaman.";
+    return;
+  }
+
+  if (pemindaiAbsensiGuru) return;
+
+  try {
+    pemindaiAbsensiGuru = new Html5Qrcode("readerAbsensiGuru");
+    if (status) status.textContent = "Meminta izin kamera...";
+
+    await pemindaiAbsensiGuru.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: { width: 230, height: 230 } },
+      async (teksQR) => {
+        if (prosesScanGuru) return;
+        prosesScanGuru = true;
+
+        try {
+          await hentikanScanAbsensiGuru();
+
+          if (status) status.textContent = "Memvalidasi QR Code...";
+
+          const hasil = await apiPost({
+            action: "barcode_absensi_scan",
+            token_qr: teksQR
+          });
+
+          if (!hasil || hasil.status !== "sukses") {
+            throw new Error(hasil?.pesan || "QR Code tidak valid.");
+          }
+
+          if (status) {
+            status.textContent =
+              (hasil.pesan || "Absensi berhasil.") +
+              (hasil.waktu ? " Pukul " + hasil.waktu : "");
+          }
+        } catch (err) {
+          if (status) {
+            status.textContent = err.message || "Absensi gagal diproses.";
+          }
+        } finally {
+          prosesScanGuru = false;
+        }
+      },
+      () => {}
+    );
+
+    if (status) status.textContent = "Kamera aktif. Arahkan ke QR Code lembaga.";
+  } catch (err) {
+    pemindaiAbsensiGuru = null;
+    if (status) {
+      status.textContent = "Kamera gagal dibuka: " + (err.message || err);
+    }
+  }
+}
+
+async function hentikanScanAbsensiGuru() {
+  const kamera = pemindaiAbsensiGuru;
+  pemindaiAbsensiGuru = null;
+
+  if (!kamera) return;
+
+  try {
+    await kamera.stop();
+  } catch (err) {
+    console.warn("Kamera sudah berhenti atau tidak aktif.", err);
+  }
+
+  try {
+    kamera.clear();
+  } catch (err) {
+    // Area pemindai mungkin sudah dibersihkan.
+  }
+}
+
 
 </script>
 
