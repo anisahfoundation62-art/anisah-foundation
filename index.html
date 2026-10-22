@@ -3110,26 +3110,125 @@ async function muatDaftarIzin() {
         }
 
         const data = hasil.data || [];
+        const peran = String(sesiAnisah.level || "").replace(/[\s_-]+/g, "").toLowerCase();
+        const bolehMemproses = ["adminpusat", "administratorpusat", "superadmin", "admin", "adminlembaga"].includes(peran);
 
         if (!data.length) {
-            target.textContent = "Belum ada pengajuan izin.";
+            target.innerHTML = '<div class="rounded-xl border border-dashed p-6 text-center text-slate-500">Belum ada pengajuan izin.</div>';
             return;
         }
 
         target.innerHTML = data.map(function(item) {
+            const status = String(item.status || "Menunggu Persetujuan");
+            const menunggu = status.toLowerCase() === "menunggu persetujuan";
+            const tampilTombol = bolehMemproses && menunggu && item.id;
+            const warnaStatus = status === "Disetujui"
+                ? "bg-green-100 text-green-800"
+                : (status === "Ditolak" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800");
+
+            // ID pengajuan dibuat oleh server dalam format IZ- diikuti karakter alfanumerik.
+            const idAman = String(item.id || "").replace(/[^A-Za-z0-9_-]/g, "");
+
             return `
-                <div class="border rounded-xl p-4 mb-3">
-                    <p><strong>Jenis:</strong> ${escapeHTML(item.jenis_izin || "")}</p>
-                    <p><strong>Mulai:</strong> ${escapeHTML(item.tanggal_mulai || "")}</p>
-                    <p><strong>Selesai:</strong> ${escapeHTML(item.tanggal_selesai || "")}</p>
-                    <p><strong>Alasan:</strong> ${escapeHTML(item.alasan || "")}</p>
-                    <p><strong>Status:</strong> ${escapeHTML(item.status || "Menunggu")}</p>
-                </div>
+                <article class="border border-slate-200 rounded-2xl p-4 md:p-5 mb-4 bg-white shadow-sm">
+                    <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+                        <div>
+                            <h4 class="font-extrabold text-slate-800">${escapeHTML(item.nama_pegawai || item.username || "Nama tidak tersedia")}</h4>
+                            <p class="text-sm text-slate-500">${escapeHTML(item.nama_lembaga || item.kode_lembaga || "")}</p>
+                        </div>
+                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-bold ${warnaStatus}">${escapeHTML(status)}</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                        <p><strong>Jenis izin:</strong> ${escapeHTML(item.jenis_izin || "-")}</p>
+                        <p><strong>Tanggal:</strong> ${escapeHTML(item.tanggal_mulai || "-")} s.d. ${escapeHTML(item.tanggal_selesai || "-")}</p>
+                    </div>
+                    <p class="text-sm mt-2 whitespace-pre-wrap break-words"><strong>Alasan:</strong> ${escapeHTML(item.alasan || "-")}</p>
+                    ${item.catatan_admin ? `<p class="text-sm mt-2"><strong>Catatan admin:</strong> ${escapeHTML(item.catatan_admin)}</p>` : ""}
+                    ${item.diproses_oleh ? `<p class="text-xs text-slate-500 mt-2">Diproses oleh: ${escapeHTML(item.diproses_oleh)}${item.waktu_keputusan ? " • " + escapeHTML(item.waktu_keputusan) : ""}</p>` : ""}
+                    ${tampilTombol ? `
+                        <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-slate-100">
+                            <button type="button" onclick="prosesPengajuanIzin('${idAman}', 'disetujui')" class="rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 text-sm">
+                                <i class="fas fa-check mr-1"></i> Setujui
+                            </button>
+                            <button type="button" onclick="prosesPengajuanIzin('${idAman}', 'ditolak')" class="rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 text-sm">
+                                <i class="fas fa-times mr-1"></i> Tolak
+                            </button>
+                        </div>
+                    ` : ""}
+                </article>
             `;
         }).join("");
 
     } catch (error) {
         target.textContent = "Gagal memuat riwayat: " + error.message;
+    }
+}
+
+async function prosesPengajuanIzin(id, keputusan) {
+    if (!sesiAnisah || !sesiAnisah.token) {
+        tampilPesan("Sesi berakhir", "Silakan login kembali.", "warning");
+        return;
+    }
+
+    const tindakan = keputusan === "disetujui" ? "menyetujui" : "menolak";
+    let catatan = "";
+
+    if (keputusan === "ditolak") {
+        catatan = window.prompt("Masukkan catatan/alasan penolakan (opsional):", "") || "";
+        if (catatan.length > 1000) {
+            tampilPesan("Catatan terlalu panjang", "Catatan maksimal 1.000 karakter.", "warning");
+            return;
+        }
+    }
+
+    let konfirmasi = true;
+    if (window.Swal && typeof Swal.fire === "function") {
+        const dialog = await Swal.fire({
+            title: keputusan === "disetujui" ? "Setujui pengajuan izin?" : "Tolak pengajuan izin?",
+            text: keputusan === "disetujui"
+                ? "Status pengajuan akan diubah menjadi Disetujui."
+                : "Status pengajuan akan diubah menjadi Ditolak.",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: keputusan === "disetujui" ? "Ya, setujui" : "Ya, tolak",
+            cancelButtonText: "Batal",
+            confirmButtonColor: keputusan === "disetujui" ? "#16a34a" : "#dc2626"
+        });
+        konfirmasi = dialog.isConfirmed;
+    } else {
+        konfirmasi = window.confirm("Apakah Anda yakin ingin " + tindakan + " pengajuan izin ini?");
+    }
+
+    if (!konfirmasi) return;
+
+    try {
+        const hasil = await apiPost({
+            action: "izin_proses",
+            token: sesiAnisah.token,
+            id: id,
+            keputusan: keputusan,
+            catatan_admin: catatan
+        });
+
+        if (hasil.status !== "sukses") {
+            throw new Error(hasil.pesan || "Pengajuan izin gagal diproses.");
+        }
+
+        if (typeof tampilPesan === "function") {
+            tampilPesan("Berhasil", hasil.pesan || "Keputusan izin berhasil disimpan.", "success");
+        } else if (window.Swal) {
+            await Swal.fire("Berhasil", hasil.pesan || "Keputusan izin berhasil disimpan.", "success");
+        } else {
+            window.alert(hasil.pesan || "Keputusan izin berhasil disimpan.");
+        }
+
+        await muatDaftarIzin();
+    } catch (error) {
+        if (typeof tampilPesan === "function") {
+            tampilPesan("Gagal memproses izin", error.message || "Terjadi kesalahan.", "error");
+        } else {
+            window.alert("Gagal memproses izin: " + (error.message || error));
+        }
     }
 }
 
