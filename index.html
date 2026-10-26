@@ -106,7 +106,7 @@
     <link rel="icon" type="image/png" href="/favicon.png?v=2">
     <link rel="apple-touch-icon" href="/favicon.png?v=2">
     <link rel="canonical" href="https://anisahfoundation.com/">
-    <!-- TEMA SOFT PASTEL BLUE - TAHAP 1 -->
+        <!-- TEMA SOFT PASTEL BLUE - TAHAP 1 -->
     <style id="tema-pastel-blue">
         body {
             background-color: #f5f8fc;
@@ -156,54 +156,57 @@
             border-color: #dbe8f8 !important;
         }
     </style>
-    <!-- TEMA SOFT PASTEL BLUE - TAHAP 1 -->
-    <style id="tema-pastel-blue">
-        body {
-            background-color: #f5f8fc;
-        }
-
-        /* Header dan warna biru utama */
-        [class~="bg-indigo-950"] {
-            background-color: #203b60 !important;
-        }
-
-        [class~="bg-indigo-900"] {
-            background-color: #315b8f !important;
-        }
-
-        [class~="bg-indigo-700"] {
-            background-color: #5d8bc2 !important;
-        }
-
-        [class~="bg-indigo-600"] {
-            background-color: #6f9ed6 !important;
-        }
-
-        /* Latar biru pastel untuk menu dan panel */
-        [class~="bg-indigo-100"] {
-            background-color: #e8f2ff !important;
-        }
-
-        [class~="bg-indigo-50"] {
-            background-color: #f2f7ff !important;
-        }
-
-        /* Warna tulisan */
-        [class~="text-indigo-950"] {
+    <!-- PERBAIKAN TEMA BIRU PASTEL -->
+    <style id="tema-pastel-blue-fix">
+        /* Gradasi utama halaman beranda */
+        #beranda {
+            background: linear-gradient(
+                120deg,
+                #dceaff 0%,
+                #eaf3ff 55%,
+                #f4f8ff 100%
+            ) !important;
             color: #203b60 !important;
         }
 
-        [class~="text-indigo-700"] {
-            color: #426fa7 !important;
+        #beranda h2,
+        #beranda > div > div:first-child > p {
+            color: #203b60 !important;
         }
 
-        [class~="text-indigo-600"] {
-            color: #527fb8 !important;
+        #beranda > div > div:first-child > span {
+            background-color: #d4e5ff !important;
+            color: #315b8f !important;
+            border-color: #b8d1f5 !important;
         }
 
-        /* Warna garis */
-        [class~="border-indigo-100"] {
-            border-color: #dbe8f8 !important;
+        /* Latar halaman login */
+        #view-login {
+            background: linear-gradient(
+                135deg,
+                #edf5ff,
+                #f8fbff,
+                #e6f0ff
+            ) !important;
+        }
+
+        /* Panel sambutan login di komputer */
+        #view-login > div > div:last-child {
+            background: linear-gradient(
+                135deg,
+                #315b8f,
+                #5d8bc2,
+                #203b60
+            ) !important;
+        }
+
+        /* Tombol login */
+        #btnLogin {
+            background-color: #5d8bc2 !important;
+        }
+
+        #btnLogin:hover {
+            background-color: #426fa7 !important;
         }
     </style>
 </head>
