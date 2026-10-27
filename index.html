@@ -2545,24 +2545,61 @@ async function hapusAbsensi(id) {
     } catch (e) { tampilPesan("Gagal menghapus", e.message, "error"); }
 }
 
-function renderGrafikKehadiran() {
+async function renderGrafikKehadiran() {
     const hitungan = {
         Hadir: 0,
         Izin: 0,
         Sakit: 0
     };
 
+    // Ambil tanggal yang sedang dipilih pada halaman absensi
+    const inputTanggal = document.getElementById("filterAbsTanggal");
+    const tanggalDipilih = inputTanggal ? inputTanggal.value : "";
+
+    // Muat data pengajuan izin dari sheet Pengajuan_Izin
+    await muatPengajuanIzinGrafik();
+
+    // Hitung status Hadir dari data absensi
     dataAbsensi.forEach(function (b) {
         const status = String(
             nilaiKolom(b, "Status", 6) || b.status || ""
         ).trim().toLowerCase();
 
-        if (status === "hadir") {
+        const tanggal = String(
+            nilaiKolom(b, "Tanggal", 1) || b.tanggal || ""
+        ).trim().slice(0, 10);
+
+        if (
+            status === "hadir" &&
+            (!tanggalDipilih || tanggal === tanggalDipilih)
+        ) {
             hitungan.Hadir++;
-        } else if (status === "izin") {
-            hitungan.Izin++;
-        } else if (status === "sakit") {
+        }
+    });
+
+    // Hitung pengajuan yang sudah disetujui dan mencakup tanggal pilihan
+    dataPengajuanIzinGrafik.forEach(function (izin) {
+        const status = String(izin.status || "")
+            .trim()
+            .toLowerCase();
+
+        if (status !== "disetujui") return;
+
+        const mulai = String(izin.tanggal_mulai || "").slice(0, 10);
+        const selesai = String(izin.tanggal_selesai || "").slice(0, 10);
+
+        if (!tanggalDipilih || !mulai || !selesai) return;
+
+        if (tanggalDipilih < mulai || tanggalDipilih > selesai) return;
+
+        const jenis = String(izin.jenis_izin || "")
+            .trim()
+            .toLowerCase();
+
+        if (jenis === "sakit") {
             hitungan.Sakit++;
+        } else {
+            hitungan.Izin++;
         }
     });
 
@@ -2578,7 +2615,7 @@ function renderGrafikKehadiran() {
         data: {
             labels: ["Hadir", "Izin", "Sakit"],
             datasets: [{
-                label: "Jumlah Catatan Absensi",
+                label: "Jumlah",
                 data: [
                     hitungan.Hadir,
                     hitungan.Izin,
