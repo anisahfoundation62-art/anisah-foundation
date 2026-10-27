@@ -2436,7 +2436,32 @@ async function muatAbsensi() {
         return [];
     }
 }
+    let dataPengajuanIzinGrafik = [];
 
+async function muatPengajuanIzinGrafik() {
+    try {
+        const hasil = await apiPost({
+            action: "izin_list",
+            token: sesiAnisah.token
+        });
+
+        if (hasil.status !== "sukses") {
+            throw new Error(
+                hasil.pesan || "Data pengajuan izin gagal dimuat."
+            );
+        }
+
+        dataPengajuanIzinGrafik = Array.isArray(hasil.data)
+            ? hasil.data
+            : [];
+
+        return dataPengajuanIzinGrafik;
+    } catch (error) {
+        console.error("Gagal memuat pengajuan izin grafik:", error);
+        dataPengajuanIzinGrafik = [];
+        return [];
+    }
+}
 function renderRiwayatAbsensi() {
     const target = document.getElementById("kontenRiwayatAbsensi");
     const adminPusat = sesiAnisah.level === "Admin_Pusat";
