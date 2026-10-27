@@ -2524,44 +2524,64 @@ function renderGrafikKehadiran() {
     const hitungan = {
         Hadir: 0,
         Izin: 0,
-        Sakit: 0,
-        Alpa: 0,
-        Kegiatan_Luar: 0
+        Sakit: 0
     };
 
     dataAbsensi.forEach(function (b) {
         const status = String(
             nilaiKolom(b, "Status", 6) || b.status || ""
-        );
+        ).trim().toLowerCase();
 
-        if (Object.prototype.hasOwnProperty.call(hitungan, status)) {
-            hitungan[status]++;
+        if (status === "hadir") {
+            hitungan.Hadir++;
+        } else if (status === "izin") {
+            hitungan.Izin++;
+        } else if (status === "sakit") {
+            hitungan.Sakit++;
         }
     });
 
     const canvas = document.getElementById("grafikAbsensi");
     if (!canvas || !window.Chart) return;
 
-    if (grafikKehadiran) grafikKehadiran.destroy();
+    if (grafikKehadiran) {
+        grafikKehadiran.destroy();
+    }
 
     grafikKehadiran = new Chart(canvas, {
         type: "bar",
         data: {
-            labels: Object.keys(hitungan),
+            labels: ["Hadir", "Izin", "Sakit"],
             datasets: [{
                 label: "Jumlah Catatan Absensi",
-                data: Object.values(hitungan),
+                data: [
+                    hitungan.Hadir,
+                    hitungan.Izin,
+                    hitungan.Sakit
+                ],
                 backgroundColor: [
-                    "#0f766e", "#d97706", "#2563eb", "#dc2626", "#7c3aed"
-                ]
+                    "#16a34a",
+                    "#eab308",
+                    "#2563eb"
+                ],
+                borderRadius: 6,
+                maxBarThickness: 64
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: { precision: 0 }
+                    ticks: {
+                        precision: 0
+                    }
                 }
             }
         }
