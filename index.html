@@ -1679,54 +1679,111 @@ function terapkanHakMenu() {
         let boleh = true;
 
         if (peran === "Guru") {
-            boleh = ["dashboard", "siswa", "absensi", "grafik", "password", "izin"].includes(menu);
+            boleh = [
+                "dashboard", "siswa", "absensi",
+                "grafik", "password", "izin"
+            ].includes(menu);
+
         } else if (peran === "Admin_Lembaga") {
-            boleh = ["dashboard", "pegawai", "siswa", "absensi", "grafik", "password", "izin"].includes(menu);
+            boleh = [
+                "dashboard", "pegawai", "siswa",
+                "absensi", "grafik", "password", "izin"
+            ].includes(menu);
+
         } else if (peran === "Admin_Pusat") {
-            boleh = ["dashboard", "lembaga", "pegawai", "siswa", "absensi", "grafik", "laporan-absensi", "akun", "berita", "pengaturan", "password", "izin"].includes(menu);
+            boleh = [
+                "dashboard", "lembaga", "pegawai", "siswa",
+                "absensi", "grafik", "laporan-absensi",
+                "akun", "berita", "pengaturan", "password", "izin"
+            ].includes(menu);
         }
 
         tombol.classList.toggle("hidden", !boleh);
     });
 
-    // Absensi manual disembunyikan pada kandidat sistem barcode.
-    const panelFormAbsensi = document.getElementById("panelFormAbsensi");
-    if (panelFormAbsensi) panelFormAbsensi.classList.add("hidden");
+    // Sembunyikan form absensi manual.
+    const panelFormAbsensi =
+        document.getElementById("panelFormAbsensi");
 
-    const panelBarcodeLembaga = document.getElementById("panelBarcodeLembaga");
+    if (panelFormAbsensi) {
+        panelFormAbsensi.classList.add("hidden");
+    }
+
+    // Panel barcode untuk Admin Lembaga.
+    const panelBarcodeLembaga =
+        document.getElementById("panelBarcodeLembaga");
+
     if (panelBarcodeLembaga) {
-        panelBarcodeLembaga.classList.toggle("hidden", peran !== "Admin_Lembaga");
+        panelBarcodeLembaga.classList.toggle(
+            "hidden",
+            peran !== "Admin_Lembaga"
+        );
     }
 
-    const panelScannerGuru = document.getElementById("panelScannerGuru");
+    // Panel pemindai barcode untuk Guru.
+    const panelScannerGuru =
+        document.getElementById("panelScannerGuru");
+
     if (panelScannerGuru) {
-        panelScannerGuru.classList.toggle("hidden", peran !== "Guru");
+        panelScannerGuru.classList.toggle(
+            "hidden",
+            peran !== "Guru"
+        );
     }
 
-    // Profil website hanya boleh dilihat Admin Pusat.
-    const tombolPengaturan = document.querySelector('[data-menu="pengaturan"]');
+    // Pengaturan hanya untuk Admin Pusat.
+    const tombolPengaturan =
+        document.querySelector('[data-menu="pengaturan"]');
+
     if (tombolPengaturan) {
-        tombolPengaturan.classList.toggle("hidden", peran !== "Admin_Pusat");
+        tombolPengaturan.classList.toggle(
+            "hidden",
+            peran !== "Admin_Pusat"
+        );
     }
 
-    const halamanPengaturan = document.getElementById("page-pengaturan");
+    const halamanPengaturan =
+        document.getElementById("page-pengaturan");
+
     if (halamanPengaturan && peran !== "Admin_Pusat") {
         halamanPengaturan.classList.add("hidden");
     }
 
-    const tombolLembaga = document.getElementById("btnTambahLembaga");
+    // Tombol tambah lembaga hanya untuk Admin Pusat.
+    const tombolLembaga =
+        document.getElementById("btnTambahLembaga");
+
     if (tombolLembaga) {
-        tombolLembaga.classList.toggle("hidden", peran !== "Admin_Pusat");
+        tombolLembaga.classList.toggle(
+            "hidden",
+            peran !== "Admin_Pusat"
+        );
     }
 
-    const tombolTambahSiswa = document.querySelector("#page-siswa button[onclick='formTambahSiswa()']");
+    // Guru tidak boleh menambah siswa.
+    const tombolTambahSiswa =
+        document.querySelector(
+            "#page-siswa button[onclick='formTambahSiswa()']"
+        );
+
     if (tombolTambahSiswa) {
-        tombolTambahSiswa.classList.toggle("hidden", peran === "Guru");
+        tombolTambahSiswa.classList.toggle(
+            "hidden",
+            peran === "Guru"
+        );
     }
 
-    const tombolTambahPegawai = document.querySelector("#page-pegawai button[onclick='formTambahPegawai()']");
+    // Guru tidak boleh menambah pegawai.
+    const tombolTambahPegawai =
+        document.querySelector(
+            "#page-pegawai button[onclick='formTambahPegawai()']"
+        );
+
     if (tombolTambahPegawai) {
-        tombolTambahPegawai.classList.toggle("hidden", peran === "Guru");
+        tombolTambahPegawai.classList.toggle(
+            "hidden",
+            peran === "Guru"
+        );
     }
 }
 
