@@ -1688,21 +1688,27 @@ function terapkanHakMenu() {
 
         tombol.classList.toggle("hidden", !boleh);
     });
-}
 
     // Absensi manual disembunyikan pada kandidat sistem barcode.
     const panelFormAbsensi = document.getElementById("panelFormAbsensi");
     if (panelFormAbsensi) panelFormAbsensi.classList.add("hidden");
+
     const panelBarcodeLembaga = document.getElementById("panelBarcodeLembaga");
-    if (panelBarcodeLembaga) panelBarcodeLembaga.classList.toggle("hidden", peran !== "Admin_Lembaga");
+    if (panelBarcodeLembaga) {
+        panelBarcodeLembaga.classList.toggle("hidden", peran !== "Admin_Lembaga");
+    }
+
     const panelScannerGuru = document.getElementById("panelScannerGuru");
-    if (panelScannerGuru) panelScannerGuru.classList.toggle("hidden", peran !== "Guru");
+    if (panelScannerGuru) {
+        panelScannerGuru.classList.toggle("hidden", peran !== "Guru");
+    }
 
     // Profil website hanya boleh dilihat Admin Pusat.
     const tombolPengaturan = document.querySelector('[data-menu="pengaturan"]');
     if (tombolPengaturan) {
         tombolPengaturan.classList.toggle("hidden", peran !== "Admin_Pusat");
     }
+
     const halamanPengaturan = document.getElementById("page-pengaturan");
     if (halamanPengaturan && peran !== "Admin_Pusat") {
         halamanPengaturan.classList.add("hidden");
