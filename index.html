@@ -3639,7 +3639,17 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 /* ---------------- PROFIL 9 LEMBAGA YAYASAN ---------------- */
 const dataProfilLembagaAnisah = [
-  { nama: "PTPA ANISAH", jabatan: "Kepala PTPA ANISAH", kepala: "Rizqa Nafilah", foto: "https://drive.google.com/file/d/1eHwckLpO1IXiZovKKi6KRXfj63jISk_8/view?usp=sharing", alamat: "jl. Bangil - Pandaan Km.01 Kel.Kolursari Kec.Bangil", sejarah: "", visi: "", misi: [] },
+    {
+        nama: "PTPA ANISAH",
+        jabatan: "Kepala PTPA ANISAH",
+        kepala: "Rizqa Nafilah",
+        foto: "https://drive.google.com/file/d/1eHwckLpO1IXiZovKKi6KRXfj63jISk_8/view?usp=sharing",
+        logo: "",
+        alamat: "Jl. Bangil - Pandaan Km.01 Kel. Kolursari Kec. Bangil",
+        sejarah: "https://drive.google.com/file/d/1CvvK1ZgsGt1sQ6w_Uan_PrbqOg0oeSgn/view?usp=sharing",
+        visi: "",
+        misi: []
+    },
   { nama: "KB AN - NISA'", jabatan: "Kepala KB AN - NISA'", kepala: "Rizqi Ageng Ratna Putri, S.Pd", foto: "https://drive.google.com/file/d/1ADR_iq6t0mTtE9v_fUPMSwY5POS_RX-O/view?usp=sharing", alamat: "jl. Bangil - Pandaan Km.01 Kel.Kolursari Kec.Bangil", sejarah: "", visi: "Terwujudnya generasi kholifah berakhlak mulia, berkarakter positif, dan cerdas melalui stimulasi 8 dimensi perkembangan anak yang bermutu", misi: [] },
   { nama: "TK MUSLIMAT 83 ANISAH", jabatan: "Kepala TK MUSLIMAT 83 ANISAH", kepala: "Siti Hikmah, S.Pd", foto: "https://drive.google.com/file/d/1N7vspBlb-AeB2PnvCW-7t_0vCOKdYg0x/view?usp=sharing", alamat: "jl. Bangil - Pandaan Km.01 Kel.Kolursari Kec.Bangil", sejarah: "", visi: "", misi: [] },
   { nama: "SD ISLAM AZ ZAHRA", jabatan: "Kepala SD ISLAM AZ ZAHRA", kepala: "Hj. Siti Nur Sa'diyah. S.Pd", foto: "https://drive.google.com/file/d/13jLkoCBdqxYQyzzK0T6coi-9iEIWPZIN/view?usp=sharing", alamat: "Jl. Raya Bangil – Pandaan KM 01 Desa Sidowayah  Kecamatan Beji Kabupaten Pasuruan", sejarah: "", visi: "", misi: [] },
@@ -3651,18 +3661,64 @@ const dataProfilLembagaAnisah = [
 ];
 
 function renderKartuProfilLembaga() {
-  const wadah = document.getElementById('kartuProfilLembaga');
-  if (!wadah) return;
-  wadah.innerHTML = dataProfilLembagaAnisah.map((item, index) => `
-    <button type="button" onclick="bukaDetailProfilLembaga(${index})" class="text-left bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-indigo-300 transition group">
-      <div class="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center text-2xl group-hover:bg-indigo-900 group-hover:text-white transition"><i class="fas ${ikonProfilLembaga(index)}"></i></div>
-      <h3 class="font-black text-indigo-950 text-lg mt-5">${escapeHTML(item.nama)}</h3>
-      <p class="text-sm text-slate-500 mt-2">${escapeHTML(item.jabatan)}</p>
-      <span class="inline-flex items-center gap-2 text-indigo-700 text-sm font-bold mt-5">Lihat profil <i class="fas fa-arrow-right"></i></span>
-    </button>`).join('');
+    const wadah = document.getElementById('kartuProfilLembaga');
+    if (!wadah) return;
+
+    wadah.innerHTML = dataProfilLembagaAnisah.map((item, index) => {
+        const logo = (item.logo || '').trim();
+
+        const tampilanLogo = logo
+            ? `<img
+                    src="${escapeHTML(logo)}"
+                    alt="Logo ${escapeHTML(item.nama)}"
+                    class="w-full h-full object-contain"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+               >
+               <div class="hidden w-full h-full items-center justify-center text-indigo-700 text-2xl">
+                    <i class="fas ${ikonProfilLembaga(index)}"></i>
+               </div>`
+            : `<div class="flex w-full h-full items-center justify-center text-indigo-700 text-2xl">
+                    <i class="fas ${ikonProfilLembaga(index)}"></i>
+               </div>`;
+
+        return `
+            <button
+                type="button"
+                onclick="bukaDetailProfilLembaga(${index})"
+                class="text-left bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-indigo-300 transition group"
+            >
+                <div class="w-16 h-16 rounded-2xl bg-indigo-50 border border-slate-100 p-2 flex items-center justify-center overflow-hidden">
+                    ${tampilanLogo}
+                </div>
+
+                <h3 class="font-black text-indigo-950 text-lg mt-5">
+                    ${escapeHTML(item.nama)}
+                </h3>
+
+                <p class="text-sm text-slate-500 mt-2">
+                    ${escapeHTML(item.jabatan || '')}
+                </p>
+
+                <span class="inline-flex items-center gap-2 text-indigo-700 text-sm font-bold mt-5">
+                    Lihat profil <i class="fas fa-arrow-right"></i>
+                </span>
+            </button>
+        `;
+    }).join('');
 }
+
 function ikonProfilLembaga(i) {
-  return ['fa-child','fa-shapes','fa-school','fa-book-open','fa-graduation-cap','fa-book-quran','fa-book','fa-laptop-file','fa-mosque'][i] || 'fa-school';
+    return [
+        'fa-child',
+        'fa-shapes',
+        'fa-school',
+        'fa-book-open',
+        'fa-graduation-cap',
+        'fa-book-quran',
+        'fa-book',
+        'fa-laptop-file',
+        'fa-mosque'
+    ][i] || 'fa-school';
 }
 function bukaDetailProfilLembaga(index) {
   const item = dataProfilLembagaAnisah[index];
