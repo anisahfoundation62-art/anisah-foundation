@@ -1007,9 +1007,6 @@
                         <div>
                             <label for="laporanTahun" class="block text-sm font-semibold mb-2">Tahun</label>
                             <select id="laporanTahun" class="w-full border rounded-xl p-3">
-                                <option value="2025">2025</option>
-                                <option value="2026" selected>2026</option>
-                                <option value="2027">2027</option>
                             </select>
                         </div>
                     </div>
@@ -2680,9 +2677,37 @@ function kolomLaporanAbsensi(baris, headers, nama) {
     return indeks >= 0 ? (baris[indeks] ?? "") : "";
 }
 
-async function siapkanLaporanAbsensiBulanan() {
-    const pilihan = document.getElementById("laporanLembaga");
+function isiPilihanTahunLaporan() {
+    const pilihan = document.getElementById("laporanTahun");
     if (!pilihan) return;
+
+    const tahunSekarang = new Date().getFullYear();
+    const tahunAwal = tahunSekarang - 5;
+    const tahunAkhir = tahunSekarang + 5;
+    const tahunTerpilih = pilihan.value;
+
+    pilihan.innerHTML = "";
+
+    for (let tahun = tahunAwal; tahun <= tahunAkhir; tahun++) {
+        const opsi = document.createElement("option");
+        opsi.value = tahun;
+        opsi.textContent = tahun;
+        pilihan.appendChild(opsi);
+    }
+
+    pilihan.value = String(
+        tahunTerpilih &&
+        Number(tahunTerpilih) >= tahunAwal &&
+        Number(tahunTerpilih) <= tahunAkhir
+            ? Number(tahunTerpilih)
+            : tahunSekarang
+    );
+}
+
+async function siapkanLaporanAbsensiBulanan() {
+    isiPilihanTahunLaporan();
+
+    const pilihan = document.getElementById("laporanLembaga");
 
     try {
         if (!Array.isArray(dataLembaga) || !dataLembaga.length) {
