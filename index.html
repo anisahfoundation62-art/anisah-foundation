@@ -1684,9 +1684,11 @@ function terapkanHakMenu() {
             boleh = ["dashboard", "pegawai", "siswa", "absensi", "grafik", "password", "izin"].includes(menu);
         } else if (peran === "Admin_Pusat") {
             boleh = ["dashboard", "lembaga", "pegawai", "siswa", "absensi", "grafik", "laporan-absensi", "akun", "berita", "pengaturan", "password", "izin"].includes(menu);
+        }
 
         tombol.classList.toggle("hidden", !boleh);
     });
+}
 
     // Absensi manual disembunyikan pada kandidat sistem barcode.
     const panelFormAbsensi = document.getElementById("panelFormAbsensi");
