@@ -1229,7 +1229,7 @@
  * Ganti URL di bawah dengan URL Web App deployment Code.gs Anda.
  */
 // Pastikan URL ini sama dengan URL Web App /exec dari deployment Code.gs yang sedang diuji.
-const scriptURL = "GANTI_DENGAN_URL_WEB_APP_UJI_COBA";
+const scriptURL = "https://script.google.com/macros/s/AKfycbyDHkavtilyy1SIfrA2k5Fm0weRmK8JsVvj5SlSnBUdLWM6lU2b6G1uu2dhspfe3hlm9A/exec";
 
 let sesiAnisah = {
     token: "",
@@ -1282,7 +1282,7 @@ function inisialisasiAwal() {
 }
 
 function apiPost(payload) {
-    if (!scriptURL || scriptURL.includes("TEMPEL_URL_")) {
+    if (!scriptURL || scriptURL.includes("TEMPEL_URL_") || scriptURL.includes("GANTI_DENGAN_URL")) {
         return Promise.reject(new Error(
             "URL Web App belum diatur. Masukkan URL deployment Code.gs pada variabel scriptURL."
         ));
@@ -3437,6 +3437,9 @@ async function muatProfilPublik() {
         terapkanPengaturanPublik(dataPengaturan);
     } catch (error) {
         console.warn("Profil publik belum dapat dimuat:", error.message);
+        // Tetap tampilkan identitas dan alamat default agar area kontak tidak kosong
+        // ketika Web App belum dapat diakses.
+        terapkanPengaturanPublik({});
     }
 }
 
