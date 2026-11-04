@@ -316,8 +316,8 @@
                 <button onclick="navigasiLayar('spmb')" class="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-lg hover:bg-amber-200 transition uppercase tracking-wide border border-amber-200"><i class="fas fa-clipboard-check mr-1"></i>Info SPMB</button>
             </div>
             <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto mt-3 md:mt-0">
-                <button onclick="document.getElementById('teksJudulLogin').innerText='Login Guru';document.getElementById('tipeLoginTemp').value='Guru';document.getElementById('areaDaftarGuru').classList.remove('hidden');gantiView('view-login');" class="w-full sm:w-auto justify-center bg-teal-600 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-teal-700 shadow-lg flex items-center gap-2">
-                    <i class="fas fa-chalkboard-teacher"></i> Portal Guru
+                <button onclick="document.getElementById('teksJudulLogin').innerText='Login Pegawai';document.getElementById('tipeLoginTemp').value='Pegawai';document.getElementById('areaDaftarGuru').classList.remove('hidden');gantiView('view-login');" class="w-full sm:w-auto justify-center bg-teal-600 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-teal-700 shadow-lg flex items-center gap-2">
+                    <i class="fas fa-users"></i> Portal Pegawai
                 </button>
                 <button onclick="document.getElementById('teksJudulLogin').innerText='Login Admin';document.getElementById('tipeLoginTemp').value='Admin';document.getElementById('areaDaftarGuru').classList.add('hidden');gantiView('view-login');" class="w-full sm:w-auto justify-center bg-indigo-600 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-indigo-700 shadow-lg flex items-center gap-2">
                     <i class="fas fa-user-lock"></i> Portal Admin
@@ -673,7 +673,7 @@
                 </button>
 
                 <div id="areaDaftarGuru" class="hidden border-t border-slate-100 pt-4 text-center">
-                    <p class="text-sm text-slate-500 mb-2">Guru belum memiliki akun?</p>
+                    <p class="text-sm text-slate-500 mb-2">Pegawai belum memiliki akun?</p>
                     <button type="button" onclick="bukaPendaftaranGuru()" class="w-full border-2 border-emerald-700 text-emerald-800 hover:bg-emerald-50 font-bold p-3 rounded-xl transition">
                         <i class="fas fa-user-plus mr-2"></i>Daftar Akun Guru
                     </button>
@@ -780,7 +780,7 @@
                 </button>
                 
                 <button onclick="bukaMenu('absensi')" data-menu="absensi" class="menu-portal w-full text-left p-3 rounded-xl font-semibold text-sm hover:bg-indigo-50 text-slate-700">
-                    <i class="fas fa-calendar-check w-6 text-indigo-600"></i>Absensi Guru
+                    <i class="fas fa-calendar-check w-6 text-indigo-600"></i>Absensi Pegawai
                 </button>
                 <button onclick="bukaMenu('izin')" data-menu="izin" class="menu-portal w-full text-left p-3 rounded-xl font-semibold text-sm hover:bg-indigo-50 text-slate-700">
                     <i class="fas fa-file-alt w-6 text-indigo-600"></i>Pengajuan Izin
@@ -877,7 +877,7 @@
                 </div>
                 <div id="kontenPegawai" class="bg-white rounded-2xl border p-5 overflow-x-auto">Memuat data pegawai...</div>
                 <div class="mt-6">
-                  <h3 class="text-lg font-black mb-3">Pendaftaran Guru Menunggu Persetujuan</h3>
+                  <h3 class="text-lg font-black mb-3">Pendaftaran Pegawai Menunggu Persetujuan</h3>
                   <p class="text-sm text-slate-500 mb-3">Permohonan guru baru akan muncul di sini. Setelah disetujui, data guru ditambahkan ke Data Pegawai dan akun dibuat di Data User.</p>
                   <div id="kontenPendaftaranGuruPegawai" class="bg-white rounded-2xl border p-5 overflow-x-auto">Memuat pendaftaran...</div>
                 </div>
@@ -896,7 +896,7 @@
 
             <section id="page-absensi" class="page-portal hidden">
                 <div class="mb-6">
-                    <h2 class="text-2xl font-black">Absensi Guru</h2>
+                    <h2 class="text-2xl font-black">Absensi Pegawai</h2>
                     <p class="text-sm text-slate-500 mt-1">Pencatatan kehadiran dan riwayat absensi.</p>
                 </div>
                 <div id="panelBarcodeLembaga" class="hidden bg-white border rounded-2xl p-6 mb-6">
@@ -1085,7 +1085,7 @@
             <section id="page-akun" class="page-portal hidden">
                 <div class="mb-6"><h2 class="text-2xl font-black">Manajemen Akun</h2><p class="text-sm text-slate-500 mt-1">Pengelolaan akun pengguna sesuai kewenangan.</p></div>
                 <div id="kontenAkun" class="bg-white rounded-2xl border p-5 overflow-x-auto">Memuat data akun...</div>
-                <div class="mt-6"><h3 class="text-lg font-black mb-3">Pendaftaran Guru Menunggu Persetujuan</h3>
+                <div class="mt-6"><h3 class="text-lg font-black mb-3">Pendaftaran Pegawai Menunggu Persetujuan</h3>
                   <div id="kontenPendaftaranGuru" class="bg-white rounded-2xl border p-5 overflow-x-auto">Memuat pendaftaran...</div>
                 </div>
                 <div class="mt-6"><h3 class="text-lg font-black mb-3">Permintaan Lupa Password</h3>
@@ -1096,7 +1096,7 @@
                     <form id="formAkun" onsubmit="buatAkun(event)" class="grid md:grid-cols-2 gap-4">
                         <div><label class="block text-sm font-bold mb-2">Username</label><input id="akunUsername" required class="w-full p-3 border rounded-xl"></div>
                         <div><label class="block text-sm font-bold mb-2">Password awal</label><input id="akunPassword" type="password" required minlength="8" class="w-full p-3 border rounded-xl"></div>
-                        <div><label class="block text-sm font-bold mb-2">Peran</label><select id="akunLevel" required class="w-full p-3 border rounded-xl"><option value="Admin_Lembaga">Admin Lembaga</option><option value="Guru">Guru</option></select></div>
+                        <div><label class="block text-sm font-bold mb-2">Peran</label><select id="akunLevel" required class="w-full p-3 border rounded-xl"><option value="Admin_Lembaga">Admin Lembaga</option><option value="Guru">Guru (akun lama)</option></select></div>
                         <div><label class="block text-sm font-bold mb-2">Kode Lembaga</label><input id="akunKode" required class="w-full p-3 border rounded-xl" placeholder="Kode sesuai master lembaga"></div>
                         <div class="md:col-span-2"><button class="bg-indigo-700 text-white px-5 py-3 rounded-xl font-bold">Buat Akun</button></div>
                     </form>
@@ -1229,7 +1229,7 @@
  * Ganti URL di bawah dengan URL Web App deployment Code.gs Anda.
  */
 // Pastikan URL ini sama dengan URL Web App /exec dari deployment Code.gs yang sedang diuji.
-const scriptURL = "https://script.google.com/macros/s/AKfycbyDHkavtilyy1SIfrA2k5Fm0weRmK8JsVvj5SlSnBUdLWM6lU2b6G1uu2dhspfe3hlm9A/exec";
+const scriptURL = "GANTI_DENGAN_URL_WEB_APP_UJI_COBA";
 
 let sesiAnisah = {
     token: "",
@@ -1378,51 +1378,30 @@ function bukaLupaPassword() {
     });
 }
 
-function bukaPendaftaranGuru() {
+async function bukaPendaftaranGuru() {
     const existing = document.getElementById("modalPendaftaranGuru");
     if (existing) existing.remove();
-
     const modal = document.createElement("div");
     modal.id = "modalPendaftaranGuru";
     modal.className = "fixed inset-0 z-[100] bg-slate-900/60 p-4 flex items-center justify-center overflow-y-auto";
     modal.innerHTML = `
-      <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 my-6">
+      <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 my-6">
         <div class="flex items-start justify-between gap-4 mb-5">
-          <div><h2 class="text-2xl font-black text-slate-900">Pendaftaran Akun Guru</h2>
-          <p class="text-sm text-slate-500 mt-1">Isi data sesuai data pegawai yang sudah tercatat di yayasan.</p></div>
+          <div><h2 class="text-2xl font-black text-slate-900">Pendaftaran Akun Pegawai</h2>
+          <p class="text-sm text-slate-500 mt-1">Isi data diri dan penempatan. ID Pegawai akan dibuat otomatis setelah disetujui Admin Pusat.</p></div>
           <button type="button" id="tutupModalDaftarGuru" class="text-slate-500 hover:text-red-600 text-2xl" aria-label="Tutup">&times;</button>
         </div>
         <form id="formDaftarGuru" class="grid sm:grid-cols-2 gap-4">
-          <div><label class="block text-sm font-bold mb-2">Nama lengkap</label><input name="nama" required class="w-full p-3 border border-slate-200 rounded-xl" autocomplete="name"></div>
-          <div><label class="block text-sm font-bold mb-2">ID Pegawai</label><input name="idPegawai" required class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Sesuai Data Pegawai"></div>
-          <div><label class="block text-sm font-bold mb-2">Username yang diinginkan</label><input name="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]{3,40}" class="w-full p-3 border border-slate-200 rounded-xl" autocomplete="username"></div>
-          <div><label class="block text-sm font-bold mb-2">Nomor WhatsApp</label><input name="wa" required inputmode="tel" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="08xxxxxxxxxx"></div>
-          <div>
-            <label class="block text-sm font-bold mb-2" for="daftarKodeLembaga">Pilih Kode Lembaga</label>
-            <select id="daftarKodeLembaga" name="kodeLembaga" required class="w-full p-3 border border-slate-200 rounded-xl">
-              <option value="">-- Pilih lembaga --</option>
-              <option value="LBG-01">LBG-01</option>
-              <option value="LBG-02">LBG-02</option>
-              <option value="LBG-03">LBG-03</option>
-              <option value="LBG-04">LBG-04</option>
-              <option value="LBG-05">LBG-05</option>
-              <option value="LBG-06">LBG-06</option>
-              <option value="LBG-07">LBG-07</option>
-              <option value="LBG-08">LBG-08</option>
-              <option value="LBG-09">LBG-09</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-bold mb-2" for="daftarNamaLembaga">Nama Lembaga</label>
-            <input id="daftarNamaLembaga" type="text" readonly class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-700" placeholder="Nama lembaga akan muncul otomatis">
-            <p class="text-xs text-slate-500 mt-1">Nama akan terisi otomatis setelah kode dipilih.</p>
-          </div>
-          <div><label class="block text-sm font-bold mb-2">Password (minimal 8 karakter)</label><input name="password" type="password" required minlength="8" class="w-full p-3 border border-slate-200 rounded-xl" autocomplete="new-password"></div>
-          <div class="sm:col-span-2"><label class="inline-flex items-start gap-2 text-sm text-slate-600"><input name="setuju" type="checkbox" required class="mt-1 accent-emerald-700"><span>Saya memastikan data benar dan memahami akun hanya aktif setelah disetujui Admin.</span></label></div>
-          <div class="sm:col-span-2 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
-            <button type="button" id="batalDaftarGuru" class="px-5 py-3 border rounded-xl font-bold">Batal</button>
-            <button type="submit" id="btnKirimDaftarGuru" class="px-5 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold">Kirim Pendaftaran</button>
-          </div>
+          <div><label class="block text-sm font-bold mb-2">Nama lengkap</label><input name="nama" required maxlength="100" class="w-full p-3 border border-slate-200 rounded-xl" autocomplete="name"></div>
+          <div><label class="block text-sm font-bold mb-2">Jenis Pegawai</label><select name="jenisPegawai" required class="w-full p-3 border border-slate-200 rounded-xl"><option value="">-- Pilih jenis pegawai --</option><option>Guru</option><option>Kepala Sekolah</option><option>Guru Pendamping</option><option>Tata Usaha (TU)</option><option>Administrasi Operasional</option><option>Tenaga Kebersihan</option><option>Satpam / Keamanan</option><option>Driver Antar Jemput</option></select></div>
+          <div><label class="block text-sm font-bold mb-2">Jabatan</label><input name="jabatan" required maxlength="80" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Contoh: Guru Kelas / Kepala Sekolah"></div>
+          <div><label class="block text-sm font-bold mb-2">Status Kepegawaian</label><select name="statusKepegawaian" required class="w-full p-3 border border-slate-200 rounded-xl"><option value="">-- Pilih status --</option><option value="GTY">GTY</option><option value="GTT">GTT</option></select></div>
+          <div><label class="block text-sm font-bold mb-2">Tempat bertugas</label><select id="daftarKodeLembaga" name="kodeLembaga" required class="w-full p-3 border border-slate-200 rounded-xl"><option value="">Memuat daftar lembaga...</option></select><p id="statusDaftarLembaga" class="text-xs text-slate-500 mt-1">Daftar diambil dari database yayasan.</p></div>
+          <div><label class="block text-sm font-bold mb-2">Nomor WhatsApp</label><input name="wa" type="tel" required inputmode="numeric" pattern="[0-9]{10,15}" minlength="10" maxlength="15" autocomplete="tel" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="08xxxxxxxxxx"><p class="text-xs text-slate-500 mt-1">Gunakan angka saja, 10–15 digit. Keyboard angka akan tampil di ponsel.</p></div>
+          <div><label class="block text-sm font-bold mb-2">Username</label><input name="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]{3,40}" class="w-full p-3 border border-slate-200 rounded-xl" autocomplete="username"></div>
+          <div><label class="block text-sm font-bold mb-2" for="daftarPassword">Password (minimal 8 karakter)</label><div class="relative"><input id="daftarPassword" name="password" type="password" required minlength="8" maxlength="128" class="w-full p-3 pr-12 border border-slate-200 rounded-xl" autocomplete="new-password" autocapitalize="off" spellcheck="false"><button type="button" id="toggleDaftarPassword" class="absolute inset-y-0 right-0 px-4 text-slate-500 hover:text-slate-800" aria-label="Tampilkan password" aria-pressed="false" title="Tampilkan password"><svg id="ikonMataDaftarPassword" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p class="text-xs text-slate-500 mt-1">Password disamarkan saat diketik. Tekan ikon mata untuk melihat atau menyembunyikan password.</p></div>
+          <div class="sm:col-span-2"><label class="inline-flex items-start gap-2 text-sm text-slate-600"><input name="setuju" type="checkbox" required class="mt-1 accent-emerald-700"><span>Saya memastikan data yang diisi benar dan memahami akun hanya aktif setelah disetujui Admin.</span></label></div>
+          <div class="sm:col-span-2 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end"><button type="button" id="batalDaftarGuru" class="px-5 py-3 border rounded-xl font-bold">Batal</button><button type="submit" id="btnKirimDaftarGuru" class="px-5 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold">Kirim Pendaftaran</button></div>
         </form>
       </div>`;
     document.body.appendChild(modal);
@@ -1430,23 +1409,33 @@ function bukaPendaftaranGuru() {
     modal.querySelector("#tutupModalDaftarGuru").addEventListener("click", close);
     modal.querySelector("#batalDaftarGuru").addEventListener("click", close);
     modal.addEventListener("click", e => { if (e.target === modal) close(); });
-    const namaLembagaDaftar = {
-      "LBG-01": "PTPA ANISAH",
-      "LBG-02": "KB AN - NISA'",
-      "LBG-03": "TK MUSLIMAT 83 ANISAH",
-      "LBG-04": "SD ISLAM AZ ZAHRA",
-      "LBG-05": "SMP ISLAM AZ ZAHRA",
-      "LBG-06": "TPQ AS SYAKUR",
-      "LBG-07": "MADIN AS SYAKUR",
-      "LBG-08": "BLKK ANISAH",
-      "LBG-09": "PP ROUDHLOTUL MA'RUF"
-    };
-    const selectKodeLembaga = modal.querySelector("#daftarKodeLembaga");
-    const inputNamaLembaga = modal.querySelector("#daftarNamaLembaga");
-    selectKodeLembaga.addEventListener("change", function() {
-      inputNamaLembaga.value = namaLembagaDaftar[this.value] || "";
+    const inputPasswordDaftar = modal.querySelector("#daftarPassword");
+    const tombolTampilPasswordDaftar = modal.querySelector("#toggleDaftarPassword");
+    tombolTampilPasswordDaftar.addEventListener("click", () => {
+        const tampil = inputPasswordDaftar.type === "password";
+        inputPasswordDaftar.type = tampil ? "text" : "password";
+        tombolTampilPasswordDaftar.innerHTML = tampil
+          ? '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A11 11 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.1 3.9"/><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/></svg>'
+          : '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+        const label = tampil ? "Sembunyikan password" : "Tampilkan password";
+        tombolTampilPasswordDaftar.setAttribute("aria-label", label);
+        tombolTampilPasswordDaftar.setAttribute("title", label);
+        tombolTampilPasswordDaftar.setAttribute("aria-pressed", tampil ? "true" : "false");
+        inputPasswordDaftar.focus();
     });
     modal.querySelector("#formDaftarGuru").addEventListener("submit", kirimPendaftaranGuru);
+    try {
+        const master = await apiPost({ action: "pegawai_master_public" });
+        if (!master || master.status !== "sukses" || !Array.isArray(master.data)) throw new Error(master?.pesan || "Daftar lembaga tidak dapat dimuat.");
+        const select = modal.querySelector("#daftarKodeLembaga");
+        select.innerHTML = '<option value="">-- Pilih lembaga --</option>' + master.data.map(x => `<option value="${String(x.kode).replace(/&/g,"&amp;").replace(/"/g,"&quot;")}">${String(x.nama).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</option>`).join("");
+        modal.querySelector("#statusDaftarLembaga").textContent = master.data.length ? "Pilih lembaga tempat Anda bertugas." : "Belum ada lembaga pada master Data_Lembaga.";
+        if (!master.data.length) modal.querySelector("#btnKirimDaftarGuru").disabled = true;
+    } catch (err) {
+        modal.querySelector("#daftarKodeLembaga").innerHTML = '<option value="">Gagal memuat lembaga</option>';
+        modal.querySelector("#statusDaftarLembaga").textContent = err.message || "Periksa koneksi database.";
+        modal.querySelector("#btnKirimDaftarGuru").disabled = true;
+    }
 }
 
 async function kirimPendaftaranGuru(event) {
@@ -1460,10 +1449,12 @@ async function kirimPendaftaranGuru(event) {
         const hasil = await apiPost({
             action: "guru_daftar",
             nama: data.nama,
-            idPegawai: data.idPegawai,
             username: data.username,
             wa: data.wa,
             kodeLembaga: data.kodeLembaga,
+            jenisPegawai: data.jenisPegawai,
+            statusKepegawaian: data.statusKepegawaian,
+            jabatan: data.jabatan,
             password: data.password
         });
         if (hasil.status !== "sukses") throw new Error(hasil.pesan || "Pendaftaran gagal.");
@@ -1514,7 +1505,7 @@ function normalisasiPeran(level) {
     const teks = String(level || "").trim().toLowerCase().replace(/[\s_-]+/g, "");
     if (["adminpusat", "superadmin", "administratorpusat", "admin"].includes(teks)) return "Admin_Pusat";
     if (["adminlembaga", "adminunit", "unitadmin"].includes(teks)) return "Admin_Lembaga";
-    if (["guru", "pegawai", "teacher"].includes(teks)) return "Guru";
+    if (["guru", "pegawai", "teacher"].includes(teks)) return "Pegawai";
     return String(level || "");
 }
 
@@ -1557,7 +1548,7 @@ async function prosesLogin(event) {
          * Hak akses harus mengikuti level yang diverifikasi server.
          */
         const tipePortal = document.getElementById("tipeLoginTemp").value;
-        if (tipePortal === "Guru" && sesiAnisah.level !== "Guru") {
+        if (["Guru", "Pegawai"].includes(tipePortal) && !["Guru", "Pegawai"].includes(sesiAnisah.level)) {
             // Pengguna tetap boleh masuk sesuai peran yang sah di server.
             console.info("Peran akun mengikuti hasil verifikasi server.");
         }
@@ -1609,7 +1600,7 @@ async function muatBarcodeGuru() {
         if(hasil.status!=="sukses"||!hasil.token_barcode)throw new Error(hasil.pesan||"Barcode belum tersedia.");
         if(typeof QRCode==="undefined")throw new Error("Pustaka QR belum termuat. Periksa koneksi internet lalu muat ulang halaman.");
         area.innerHTML=""; new QRCode(area,{text:hasil.token_barcode,width:220,height:220,correctLevel:QRCode.CorrectLevel.M});
-        status.textContent="Barcode pribadi berhasil dimuat. Kamera tidak diaktifkan pada Portal Guru.";
+        status.textContent="Barcode pribadi berhasil dimuat. Kamera tidak diaktifkan pada Portal Pegawai.";
     }catch(error){area.innerHTML='<p class="max-w-xs text-sm text-rose-600 text-center"></p>';area.querySelector("p").textContent=error.message||"Barcode gagal dimuat.";status.textContent="Belum berhasil memuat barcode.";}
 }
 
@@ -1675,7 +1666,7 @@ function terapkanHakMenu() {
         const menu = tombol.dataset.menu;
         let boleh = true;
 
-        if (peran === "Guru") {
+        if (peran === "Pegawai") {
             boleh = [
                 "dashboard", "siswa", "absensi",
                 "grafik", "password", "izin"
@@ -1724,7 +1715,7 @@ function terapkanHakMenu() {
     if (panelScannerGuru) {
         panelScannerGuru.classList.toggle(
             "hidden",
-            peran !== "Guru"
+            peran !== "Pegawai"
         );
     }
 
@@ -1766,7 +1757,7 @@ function terapkanHakMenu() {
     if (tombolTambahSiswa) {
         tombolTambahSiswa.classList.toggle(
             "hidden",
-            peran === "Guru"
+            peran === "Pegawai"
         );
     }
 
@@ -1779,7 +1770,7 @@ function terapkanHakMenu() {
     if (tombolTambahPegawai) {
         tombolTambahPegawai.classList.toggle(
             "hidden",
-            peran === "Guru"
+            peran === "Pegawai"
         );
     }
 }
@@ -1810,7 +1801,7 @@ function bukaMenu(menu) {
         // Tampilkan halaman terlebih dahulu agar QR dirender pada panel yang terlihat.
         setTimeout(() => iniciarBarcodeLembaga(), 80);
     }
-    if (menu === "absensi" && sesiAnisah.level === "Guru") { const p=document.getElementById("panelScannerGuru"); if(p) p.classList.remove("hidden"); }
+    if (menu === "absensi" && sesiAnisah.level === "Pegawai") { const p=document.getElementById("panelScannerGuru"); if(p) p.classList.remove("hidden"); }
     if (menu === "berita" && sesiAnisah.level === "Admin_Pusat") muatBeritaAdmin();
     if (!sesiAnisah.token) {
         gantiView("view-login");
@@ -2090,7 +2081,7 @@ function renderPilihanPegawai() {
     let daftar = Array.isArray(dataPegawai) ? dataPegawai.slice() : [];
 
     // Guru hanya dapat mengisi absensi untuk akun/ID pegawainya sendiri.
-    if (sesiAnisah.level === "Guru") {
+    if (sesiAnisah.level === "Pegawai") {
         daftar = daftar.filter(function (b) {
             return String(nilaiKolom(b, "ID_Pegawai", 0) || "").trim() ===
                 String(sesiAnisah.id_pegawai || "").trim();
@@ -2112,7 +2103,7 @@ function renderPilihanPegawai() {
             return `<option value="${escapeHTML(id)}">${escapeHTML(nama)} — ${escapeHTML(unit)}</option>`;
         }).join("");
 
-    if (sesiAnisah.level === "Guru") {
+    if (sesiAnisah.level === "Pegawai") {
         pilihan.value = String(sesiAnisah.id_pegawai || "").trim();
     } else if (pilihanLama) {
         pilihan.value = pilihanLama;
@@ -3316,13 +3307,13 @@ async function muatPendaftaranGuruDiDataPegawai() {
         const hasil = await apiPost({ action: "guru_daftar_list" });
         const daftar = hasil.data || [];
         if (!daftar.length) {
-            target.innerHTML = '<p class="text-slate-500">Belum ada pendaftaran Guru yang menunggu persetujuan.</p>';
+            target.innerHTML = '<p class="text-slate-500">Belum ada pendaftaran Pegawai yang menunggu persetujuan.</p>';
             return;
         }
         target.innerHTML = `<table class="min-w-full text-sm"><thead><tr class="bg-slate-100 text-left">
-          <th class="p-3">Nama</th><th class="p-3">Username</th><th class="p-3">ID Pegawai</th><th class="p-3">Lembaga</th><th class="p-3">WhatsApp</th><th class="p-3">Aksi</th>
+          <th class="p-3">Nama</th><th class="p-3">Username</th><th class="p-3">Jenis / Jabatan</th><th class="p-3">Status</th><th class="p-3">Lembaga</th><th class="p-3">WhatsApp</th><th class="p-3">Aksi</th>
           </tr></thead><tbody>${daftar.map(d => `<tr class="border-t">
-          <td class="p-3">${escapeHTML(d.nama)}</td><td class="p-3">${escapeHTML(d.username)}</td><td class="p-3">${escapeHTML(d.idPegawai)}</td><td class="p-3">${escapeHTML(d.kodeLembaga)}</td><td class="p-3">${escapeHTML(d.wa)}</td>
+          <td class="p-3">${escapeHTML(d.nama)}</td><td class="p-3">${escapeHTML(d.username)}</td><td class="p-3">${escapeHTML(d.jenisPegawai || "Guru")}<br><span class="text-xs text-slate-500">${escapeHTML(d.jabatan || "")}</span></td><td class="p-3">${escapeHTML(d.statusKepegawaian || "GTY")}</td><td class="p-3">${escapeHTML(d.kodeLembaga)}</td><td class="p-3">${escapeHTML(d.wa)}</td>
           <td class="p-3 whitespace-nowrap"><button onclick="prosesPersetujuanGuru(${Number(d.row)}, 'setujui')" class="bg-emerald-700 text-white px-3 py-2 rounded-lg font-bold mr-1">Setujui</button><button onclick="prosesPersetujuanGuru(${Number(d.row)}, 'tolak')" class="bg-red-600 text-white px-3 py-2 rounded-lg font-bold">Tolak</button></td>
           </tr>`).join("")}</tbody></table>`;
     } catch (error) {
@@ -3344,9 +3335,9 @@ async function muatPendaftaranGuruMenunggu() {
             return;
         }
         target.innerHTML = `<table class="min-w-full text-sm"><thead><tr class="bg-slate-100 text-left">
-          <th class="p-3">Nama</th><th class="p-3">Username</th><th class="p-3">ID Pegawai</th><th class="p-3">Lembaga</th><th class="p-3">WhatsApp</th><th class="p-3">Aksi</th>
+          <th class="p-3">Nama</th><th class="p-3">Username</th><th class="p-3">Jenis / Jabatan</th><th class="p-3">Status</th><th class="p-3">Lembaga</th><th class="p-3">WhatsApp</th><th class="p-3">Aksi</th>
           </tr></thead><tbody>${daftar.map(d => `<tr class="border-t">
-          <td class="p-3">${escapeHTML(d.nama)}</td><td class="p-3">${escapeHTML(d.username)}</td><td class="p-3">${escapeHTML(d.idPegawai)}</td><td class="p-3">${escapeHTML(d.kodeLembaga)}</td><td class="p-3">${escapeHTML(d.wa)}</td>
+          <td class="p-3">${escapeHTML(d.nama)}</td><td class="p-3">${escapeHTML(d.username)}</td><td class="p-3">${escapeHTML(d.jenisPegawai || "Guru")}<br><span class="text-xs text-slate-500">${escapeHTML(d.jabatan || "")}</span></td><td class="p-3">${escapeHTML(d.statusKepegawaian || "GTY")}</td><td class="p-3">${escapeHTML(d.kodeLembaga)}</td><td class="p-3">${escapeHTML(d.wa)}</td>
           <td class="p-3 whitespace-nowrap"><button onclick="prosesPersetujuanGuru(${Number(d.row)}, 'setujui')" class="bg-emerald-700 text-white px-3 py-2 rounded-lg font-bold mr-1">Setujui</button><button onclick="prosesPersetujuanGuru(${Number(d.row)}, 'tolak')" class="bg-red-600 text-white px-3 py-2 rounded-lg font-bold">Tolak</button></td>
           </tr>`).join("")}</tbody></table>`;
     } catch (error) {
@@ -3381,7 +3372,7 @@ async function tandaiLupaPassword(row) {
 async function prosesPersetujuanGuru(row, keputusan) {
     const konfirmasi = await (window.Swal ? Swal.fire({
         title: keputusan === "setujui" ? "Setujui pendaftaran?" : "Tolak pendaftaran?",
-        text: keputusan === "setujui" ? "Akun Guru akan diaktifkan." : "Pendaftaran akan ditandai ditolak.",
+        text: keputusan === "setujui" ? "Akun Pegawai akan diaktifkan." : "Pendaftaran akan ditandai ditolak.",
         icon: "question", showCancelButton: true, confirmButtonText: "Ya, lanjutkan", cancelButtonText: "Batal"
     }) : Promise.resolve({ isConfirmed: confirm("Lanjutkan proses ini?") }));
     if (!konfirmasi.isConfirmed) return;
