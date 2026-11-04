@@ -2111,13 +2111,61 @@ function renderPilihanPegawai() {
 }
 
 function perbaruiStatistik() {
-    document.getElementById("statLembaga").textContent = dataLembaga.length;
-    document.getElementById("statPegawai").textContent = dataPegawai.length;
-    document.getElementById("statSiswa").textContent = dataSiswa.length;
+    // Statistik dashboard dihitung terpisah dari data mentah yang dipakai
+    // tabel. Untuk Admin Lembaga, hanya hitung baris milik kode lembaganya.
+    // Pembatasan akses data tetap wajib dilakukan backend; ini koreksi angka UI.
+    const peran = String((sesiAnisah && sesiAnisah.level) || "").toLowerCase().replace(/[\s_-]+/g, "");
+    const adminPusat = ["adminpusat", "superadmin", "administratorpusat", "admin"].includes(peran);
+    const kodeAkun = String((sesiAnisah && sesiAnisah.kode_lembaga) || "").trim().toLowerCase();
+    const namaAkun = String((sesiAnisah && sesiAnisah.nama_lembaga) || "").trim().toLowerCase();
+
+    function normalStat(v) {
+        return String(v == null ? "" : v).trim().toLowerCase().replace(/\s+/g, " ");
+    }
+    function bukanHeader(row, header, idx) {
+        const v = normalStat(nilaiKolom(row, header, idx));
+        if (!v) return false;
+        const kandidat = [header.toLowerCase(), "id_lembaga", "kode_lembaga", "id_pegawai", "nisn", "no."];
+        return !kandidat.includes(v);
+    }
+    function cocokUnit(row, headerKode, idxKode, headerNama, idxNama) {
+        const kode = normalStat(nilaiKolom(row, headerKode, idxKode));
+        const nama = normalStat(nilaiKolom(row, headerNama, idxNama));
+        // Data baru menyimpan Kode_Lembaga. Data lama dicocokkan dengan nama unit.
+        if (kode) return kode === kodeAkun;
+        return !!nama && (nama === namaAkun || nama === kodeAkun || nama.includes(namaAkun));
+    }
+    function hitung(kind, rows) {
+        const daftar = Array.isArray(rows) ? rows : [];
+        if (adminPusat) {
+            return daftar.filter(function (r) {
+                if (kind === "lembaga") return bukanHeader(r, "ID_Lembaga", 0);
+                if (kind === "pegawai") return bukanHeader(r, "ID_Pegawai", 0);
+                return bukanHeader(r, "NISN", 0);
+            }).length;
+        }
+        if (!kodeAkun) return 0;
+        return daftar.filter(function (r) {
+            if (kind === "lembaga") {
+                return bukanHeader(r, "ID_Lembaga", 0) && cocokUnit(r, "ID_Lembaga", 0, "Nama_Lembaga", 1);
+            }
+            if (kind === "pegawai") {
+                if (!bukanHeader(r, "ID_Pegawai", 0)) return false;
+                // Kolom G (indeks 6) adalah Kode_Lembaga pada struktur pegawai baru.
+                return cocokUnit(r, "Kode_Lembaga", 6, "Unit_Lembaga", 2);
+            }
+            if (!bukanHeader(r, "NISN", 0)) return false;
+            // Data siswa lama memakai kolom ke-4 untuk unit; dukung juga header Kode_Lembaga.
+            const unitSiswa = normalStat(nilaiKolom(r, "Unit_Lembaga", 3));
+            return unitSiswa === kodeAkun || unitSiswa === namaAkun || unitSiswa.includes(namaAkun);
+        }).length;
+    }
+
+    document.getElementById("statLembaga").textContent = hitung("lembaga", dataLembaga);
+    document.getElementById("statPegawai").textContent = hitung("pegawai", dataPegawai);
+    document.getElementById("statSiswa").textContent = hitung("siswa", dataSiswa);
 
     // dataAbsensi berbentuk array: baris pertama adalah header.
-    // Hitung hanya catatan bertanggal hari ini; server sudah membatasi
-    // catatan berdasarkan peran/kode lembaga akun yang sedang masuk.
     const hariIni = tanggalHariIni();
     const jumlahAbsensiHariIni = Array.isArray(dataAbsensi)
         ? dataAbsensi.slice(1).filter(function (baris) {
