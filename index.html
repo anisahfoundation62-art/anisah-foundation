@@ -873,10 +873,7 @@
             <section id="page-pegawai" class="page-portal hidden">
                 <div class="flex flex-wrap justify-between gap-3 items-center mb-6">
                     <div><h2 class="text-2xl font-black">Data Pegawai</h2><p class="text-sm text-slate-500 mt-1">Data guru dan pegawai lembaga.</p></div>
-                    <div class="flex flex-wrap gap-2">
-                        <button id="btnRefreshPegawai" type="button" onclick="refreshDataPegawaiDanPendaftaran()" class="bg-sky-100 text-sky-800 px-4 py-3 rounded-xl font-bold"><i class="fas fa-rotate mr-2"></i>Refresh Data</button>
-                        <button onclick="formTambahPegawai()" class="bg-indigo-700 text-white px-4 py-3 rounded-xl font-bold"><i class="fas fa-user-plus mr-2"></i>Tambah Pegawai</button>
-                    </div>
+                    <button onclick="formTambahPegawai()" class="bg-indigo-700 text-white px-4 py-3 rounded-xl font-bold"><i class="fas fa-user-plus mr-2"></i>Tambah Pegawai</button>
                 </div>
                 <div id="kontenPegawai" class="bg-white rounded-2xl border p-5 overflow-x-auto">Memuat data pegawai...</div>
                 <div class="mt-6">
@@ -898,9 +895,9 @@
             </section>
 
             <section id="page-absensi" class="page-portal hidden">
-                <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-                    <div><h2 class="text-2xl font-black">Absensi Pegawai</h2><p class="text-sm text-slate-500 mt-1">Pencatatan kehadiran dan riwayat absensi.</p></div>
-                    <button id="btnRefreshAbsensi" type="button" onclick="refreshDataAbsensi()" class="bg-sky-100 text-sky-800 px-4 py-3 rounded-xl font-bold"><i class="fas fa-rotate mr-2"></i>Refresh Absensi</button>
+                <div class="mb-6">
+                    <h2 class="text-2xl font-black">Absensi Pegawai</h2>
+                    <p class="text-sm text-slate-500 mt-1">Pencatatan kehadiran dan riwayat absensi.</p>
                 </div>
                 <div id="panelBarcodeLembaga" class="hidden bg-white border rounded-2xl p-6 mb-6">
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1382,75 +1379,201 @@ function bukaLupaPassword() {
 }
 
 async function bukaPendaftaranGuru() {
-    const existing = document.getElementById("modalPendaftaranGuru");
-    if (existing) existing.remove();
+    document.getElementById("modalPendaftaranGuru")?.remove();
+
     const modal = document.createElement("div");
     modal.id = "modalPendaftaranGuru";
-    modal.className = "fixed inset-0 z-[100] bg-slate-900/60 px-3 pt-3 pb-3 sm:p-4 flex items-start sm:items-center justify-center overflow-y-auto overscroll-contain";
+    modal.style.cssText = "position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.72);display:flex;align-items:stretch;justify-content:center;padding:0;overflow:hidden;";
     modal.innerHTML = `
-      <div class="bg-white w-full max-w-3xl max-h-[calc(100dvh-24px)] overflow-y-auto overscroll-contain rounded-2xl shadow-2xl p-4 sm:p-6 my-0 sm:my-6" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
-        <div class="flex items-start justify-between gap-4 mb-5">
-          <div><h2 class="text-2xl font-black text-slate-900">Pendaftaran Akun Pegawai</h2>
-          <p class="text-sm text-slate-500 mt-1">Isi data diri dan penempatan. ID Pegawai akan dibuat otomatis setelah disetujui Admin Pusat.</p></div>
-          <button type="button" id="tutupModalDaftarGuru" class="text-slate-500 hover:text-red-600 text-2xl" aria-label="Tutup">&times;</button>
+      <style>
+        #modalPendaftaranGuru, #modalPendaftaranGuru * { box-sizing:border-box; }
+        #modalPendaftaranGuru .daftar-dialog {
+          width:100%; max-width:760px; height:100%; max-height:100%;
+          background:#fff; display:flex; flex-direction:column; overflow:hidden;
+        }
+        #modalPendaftaranGuru .daftar-head {
+          flex:0 0 auto; padding:14px 16px 11px; border-bottom:1px solid #e2e8f0;
+          background:#fff; z-index:2;
+        }
+        #modalPendaftaranGuru .daftar-scroll {
+          flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden;
+          -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+          padding:18px 16px;
+        }
+        #modalPendaftaranGuru .daftar-foot {
+          flex:0 0 auto; display:flex; gap:9px; padding:10px 14px;
+          padding-bottom:max(10px, env(safe-area-inset-bottom));
+          border-top:1px solid #e2e8f0; background:#fff; z-index:3;
+        }
+        #modalPendaftaranGuru .daftar-step { display:none !important; }
+        #modalPendaftaranGuru .daftar-step.is-active { display:block !important; }
+        #modalPendaftaranGuru input:not([type=checkbox]), #modalPendaftaranGuru select {
+          width:100%; min-height:48px; font-size:16px; border:1px solid #cbd5e1;
+          border-radius:12px; padding:11px 13px; background:#fff; color:#0f172a;
+        }
+        #modalPendaftaranGuru select { background-color:#f8fafc; }
+        #modalPendaftaranGuru label.field-label { display:block; font-size:14px; font-weight:700; color:#1e293b; margin:0 0 7px; }
+        #modalPendaftaranGuru .daftar-field { margin-bottom:18px; }
+        #modalPendaftaranGuru .daftar-action {
+          min-height:46px; border-radius:12px; padding:10px 15px;
+          font-size:14px; font-weight:800; cursor:pointer;
+        }
+        #modalPendaftaranGuru .daftar-action:disabled { opacity:.55; cursor:not-allowed; }
+        #modalPendaftaranGuru .daftar-progress-track { height:6px; border-radius:999px; background:#e2e8f0; overflow:hidden; }
+        #modalPendaftaranGuru .daftar-progress-fill { height:100%; width:0; background:#047857; transition:width .2s ease; }
+        @media (min-width:640px) {
+          #modalPendaftaranGuru { align-items:center !important; padding:16px !important; overflow-y:auto !important; }
+          #modalPendaftaranGuru .daftar-dialog { height:auto; max-height:calc(100dvh - 32px); border-radius:18px; }
+          #modalPendaftaranGuru .daftar-head { padding:20px 24px 14px; }
+          #modalPendaftaranGuru .daftar-scroll { padding:22px 24px; }
+          #modalPendaftaranGuru .daftar-foot { padding:12px 24px; }
+        }
+      </style>
+      <div class="daftar-dialog" role="dialog" aria-modal="true" aria-labelledby="judulDaftarPegawai">
+        <div class="daftar-head">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div>
+              <h2 id="judulDaftarPegawai" style="font-size:21px;font-weight:900;color:#0f172a;line-height:1.25">Pendaftaran Akun Pegawai</h2>
+              <p style="font-size:13px;color:#64748b;margin-top:5px">Lengkapi pendaftaran dalam 3 tahap. ID Pegawai dibuat otomatis setelah disetujui Admin Pusat.</p>
+            </div>
+            <button type="button" id="tutupModalDaftarGuru" aria-label="Tutup" style="font-size:30px;line-height:1;color:#64748b;padding:0 4px">&times;</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px">
+            <div><div class="daftar-progress-track"><div class="daftar-progress-fill" data-fill="0"></div></div><div data-label="0" style="font-size:11px;font-weight:800;margin-top:6px;color:#0f172a">1. Data diri</div></div>
+            <div><div class="daftar-progress-track"><div class="daftar-progress-fill" data-fill="1"></div></div><div data-label="1" style="font-size:11px;font-weight:800;margin-top:6px;color:#94a3b8">2. Pekerjaan</div></div>
+            <div><div class="daftar-progress-track"><div class="daftar-progress-fill" data-fill="2"></div></div><div data-label="2" style="font-size:11px;font-weight:800;margin-top:6px;color:#94a3b8">3. Akun</div></div>
+          </div>
+          <p id="daftarNomorTahap" aria-live="polite" style="font-size:12px;font-weight:800;color:#047857;margin-top:8px">TAHAP 1 DARI 3</p>
         </div>
-        <form id="formDaftarGuru" class="grid sm:grid-cols-2 gap-4">
-          <div><label class="block text-sm font-bold mb-2">Nama lengkap</label><input name="nama" required maxlength="100" class="w-full p-3 border border-slate-200 rounded-xl" autocomplete="name"></div>
-          <div><label class="block text-sm font-bold mb-2">Jenis Pegawai</label><select name="jenisPegawai" required class="w-full p-3 border border-slate-200 rounded-xl"><option value="">-- Pilih jenis pegawai --</option><option>Guru</option><option>Kepala Sekolah</option><option>Guru Pendamping</option><option>Tata Usaha (TU)</option><option>Administrasi Operasional</option><option>Tenaga Kebersihan</option><option>Satpam / Keamanan</option><option>Driver Antar Jemput</option></select></div>
-          <div><label class="block text-sm font-bold mb-2">Jabatan</label><input name="jabatan" required maxlength="80" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="Contoh: Guru Kelas / Kepala Sekolah"></div>
-          <div><label class="block text-sm font-bold mb-2">Status Kepegawaian</label><select name="statusKepegawaian" required class="w-full p-3 border border-slate-200 rounded-xl"><option value="">-- Pilih status --</option><option value="GTY">GTY</option><option value="GTT">GTT</option></select></div>
-          <div><label class="block text-sm font-bold mb-2">Tempat bertugas</label><select id="daftarKodeLembaga" name="kodeLembaga" required class="w-full p-3 border border-slate-200 rounded-xl"><option value="">Memuat daftar lembaga...</option></select><p id="statusDaftarLembaga" class="text-xs text-slate-500 mt-1">Daftar diambil dari database yayasan.</p></div>
-          <div><label class="block text-sm font-bold mb-2">Nomor WhatsApp</label><input name="wa" type="tel" required inputmode="numeric" pattern="[0-9]{10,15}" minlength="10" maxlength="15" autocomplete="tel" class="w-full p-3 border border-slate-200 rounded-xl" placeholder="08xxxxxxxxxx"><p class="text-xs text-slate-500 mt-1">Gunakan angka saja, 10–15 digit. Keyboard angka akan tampil di ponsel.</p></div>
-          <div><label class="block text-sm font-bold mb-2">Username</label><input name="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]{3,40}" class="w-full p-3 border border-slate-200 rounded-xl" autocomplete="username"></div>
-          <div><label class="block text-sm font-bold mb-2" for="daftarPassword">Password (minimal 8 karakter)</label><div class="relative"><input id="daftarPassword" name="password" type="password" required minlength="8" maxlength="128" class="w-full p-3 pr-12 border border-slate-200 rounded-xl" autocomplete="new-password" autocapitalize="off" spellcheck="false"><button type="button" id="toggleDaftarPassword" class="absolute inset-y-0 right-0 px-4 text-slate-500 hover:text-slate-800" aria-label="Tampilkan password" aria-pressed="false" title="Tampilkan password"><svg id="ikonMataDaftarPassword" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></div><p class="text-xs text-slate-500 mt-1">Password disamarkan saat diketik. Tekan ikon mata untuk melihat atau menyembunyikan password.</p></div>
-          <div class="sm:col-span-2"><label class="inline-flex items-start gap-2 text-sm text-slate-600"><input name="setuju" type="checkbox" required class="mt-1 accent-emerald-700"><span>Saya memastikan data yang diisi benar dan memahami akun hanya aktif setelah disetujui Admin.</span></label></div>
-          <div class="sm:col-span-2 flex flex-col-reverse sm:flex-row gap-3 sm:justify-end"><button type="button" id="batalDaftarGuru" class="px-5 py-3 border rounded-xl font-bold">Batal</button><button type="submit" id="btnKirimDaftarGuru" class="px-5 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold">Kirim Pendaftaran</button></div>
-        </form>
+        <div class="daftar-scroll">
+          <form id="formDaftarGuru" novalidate>
+            <section class="daftar-step is-active" data-step="0">
+              <h3 style="font-size:18px;font-weight:900;color:#0f172a;margin-bottom:5px">Data diri</h3>
+              <p style="font-size:13px;color:#64748b;margin-bottom:18px">Masukkan identitas dasar Anda.</p>
+              <div class="daftar-field"><label class="field-label" for="daftarNama">Nama lengkap</label><input id="daftarNama" name="nama" required maxlength="100" autocomplete="name" placeholder="Masukkan nama lengkap"></div>
+              <div class="daftar-field"><label class="field-label" for="daftarJenisPegawai">Jenis Pegawai</label><select id="daftarJenisPegawai" name="jenisPegawai" required><option value="">-- Pilih jenis pegawai --</option><option>Guru</option><option>Kepala Sekolah</option><option>Guru Pendamping</option><option>Tata Usaha (TU)</option><option>Administrasi Operasional</option><option>Tenaga Kebersihan</option><option>Satpam / Keamanan</option><option>Driver Antar Jemput</option></select></div>
+            </section>
+            <section class="daftar-step" data-step="1">
+              <h3 style="font-size:18px;font-weight:900;color:#0f172a;margin-bottom:5px">Data pekerjaan</h3>
+              <p style="font-size:13px;color:#64748b;margin-bottom:18px">Lengkapi jabatan dan lembaga tempat bertugas.</p>
+              <div class="daftar-field"><label class="field-label" for="daftarJabatan">Jabatan</label><input id="daftarJabatan" name="jabatan" required maxlength="80" placeholder="Contoh: Guru Kelas / Kepala Sekolah"></div>
+              <div class="daftar-field"><label class="field-label" for="daftarStatus">Status Kepegawaian</label><select id="daftarStatus" name="statusKepegawaian" required><option value="">-- Pilih status --</option><option value="GTY">GTY</option><option value="GTT">GTT</option></select></div>
+              <div class="daftar-field"><label class="field-label" for="daftarKodeLembaga">Tempat bertugas</label><select id="daftarKodeLembaga" name="kodeLembaga" required><option value="">Memuat daftar lembaga...</option></select><p id="statusDaftarLembaga" style="font-size:12px;color:#64748b;margin-top:7px">Pilih lembaga tempat Anda bertugas.</p></div>
+            </section>
+            <section class="daftar-step" data-step="2">
+              <h3 style="font-size:18px;font-weight:900;color:#0f172a;margin-bottom:5px">Kontak dan akun</h3>
+              <p style="font-size:13px;color:#64748b;margin-bottom:18px">Buat akun untuk masuk ke Portal Pegawai.</p>
+              <div class="daftar-field"><label class="field-label" for="daftarWa">Nomor WhatsApp</label><input id="daftarWa" name="wa" type="tel" required inputmode="numeric" pattern="[0-9]{10,15}" minlength="10" maxlength="15" autocomplete="tel" placeholder="08xxxxxxxxxx"><p style="font-size:12px;color:#64748b;margin-top:7px">Gunakan angka saja, 10–15 digit.</p></div>
+              <div class="daftar-field"><label class="field-label" for="daftarUsername">Username</label><input id="daftarUsername" name="username" required minlength="3" maxlength="40" pattern="[A-Za-z0-9._-]{3,40}" autocomplete="username" placeholder="Buat username"></div>
+              <div class="daftar-field"><label class="field-label" for="daftarPassword">Password (minimal 8 karakter)</label><div style="position:relative"><input id="daftarPassword" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="Buat password" style="padding-right:52px"><button type="button" id="toggleDaftarPassword" aria-label="Tampilkan password" aria-pressed="false" style="position:absolute;right:0;top:0;height:48px;width:48px;color:#64748b;font-size:20px">◉</button></div><p style="font-size:12px;color:#64748b;margin-top:7px">Tekan ikon mata untuk melihat atau menyembunyikan password.</p></div>
+              <label style="display:flex;align-items:flex-start;gap:9px;font-size:13px;color:#475569;line-height:1.5"><input name="setuju" type="checkbox" required style="width:18px;height:18px;min-height:18px;margin-top:2px;flex:0 0 auto"><span>Saya memastikan data yang diisi benar dan memahami akun hanya aktif setelah disetujui Admin.</span></label>
+            </section>
+          </form>
+        </div>
+        <div class="daftar-foot">
+          <button type="button" id="batalDaftarGuru" class="daftar-action" style="border:1px solid #cbd5e1;color:#334155">Batal</button>
+          <button type="button" id="kembaliDaftarGuru" class="daftar-action" style="display:none;border:1px solid #cbd5e1;color:#334155">Kembali</button>
+          <button type="button" id="lanjutDaftarGuru" class="daftar-action" style="flex:1;background:#047857;color:#fff">Lanjut ke Tahap 2</button>
+          <button type="submit" form="formDaftarGuru" id="btnKirimDaftarGuru" class="daftar-action" style="display:none;flex:1;background:#047857;color:#fff">Kirim Pendaftaran</button>
+        </div>
       </div>`;
+
     document.body.appendChild(modal);
-    const overflowSebelumnya = document.body.style.overflow;
+    const oldBodyOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const close = () => {
-        modal.remove();
-        document.body.style.overflow = overflowSebelumnya;
-        document.removeEventListener("keydown", tutupDenganEscape);
+      modal.remove();
+      document.body.style.overflow = oldBodyOverflow;
+      document.removeEventListener("keydown", escapeClose);
     };
-    const tutupDenganEscape = (e) => { if (e.key === "Escape") close(); };
-    document.addEventListener("keydown", tutupDenganEscape);
-    // Mulai dari bagian paling atas agar judul dan kolom pertama tidak terpotong di HP.
-    modal.scrollTop = 0;
+    const escapeClose = e => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", escapeClose);
     modal.querySelector("#tutupModalDaftarGuru").addEventListener("click", close);
     modal.querySelector("#batalDaftarGuru").addEventListener("click", close);
     modal.addEventListener("click", e => { if (e.target === modal) close(); });
-    const inputPasswordDaftar = modal.querySelector("#daftarPassword");
-    const tombolTampilPasswordDaftar = modal.querySelector("#toggleDaftarPassword");
-    tombolTampilPasswordDaftar.addEventListener("click", () => {
-        const tampil = inputPasswordDaftar.type === "password";
-        inputPasswordDaftar.type = tampil ? "text" : "password";
-        tombolTampilPasswordDaftar.innerHTML = tampil
-          ? '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.2A11 11 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.1 3.9"/><path d="M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4-.8"/></svg>'
-          : '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
-        const label = tampil ? "Sembunyikan password" : "Tampilkan password";
-        tombolTampilPasswordDaftar.setAttribute("aria-label", label);
-        tombolTampilPasswordDaftar.setAttribute("title", label);
-        tombolTampilPasswordDaftar.setAttribute("aria-pressed", tampil ? "true" : "false");
-        inputPasswordDaftar.focus();
+
+    const form = modal.querySelector("#formDaftarGuru");
+    const steps = Array.from(modal.querySelectorAll(".daftar-step"));
+    const back = modal.querySelector("#kembaliDaftarGuru");
+    const next = modal.querySelector("#lanjutDaftarGuru");
+    const submit = modal.querySelector("#btnKirimDaftarGuru");
+    let current = 0;
+
+    // Wajib hanya aktif pada tahap yang sedang terlihat; data tahap sebelumnya tetap tersimpan.
+    form.querySelectorAll("[required]").forEach(el => {
+      el.dataset.stepRequired = "1";
+      el.required = false;
     });
-    modal.querySelector("#formDaftarGuru").addEventListener("submit", kirimPendaftaranGuru);
+
+    function showStep(index) {
+      current = Math.max(0, Math.min(index, steps.length - 1));
+      steps.forEach((section, i) => {
+        section.classList.toggle("is-active", i === current);
+        section.querySelectorAll("input,select,textarea").forEach(field => {
+          field.required = field.dataset.stepRequired === "1" && i === current;
+        });
+      });
+      modal.querySelectorAll("[data-fill]").forEach((bar, i) => {
+        bar.style.width = i <= current ? "100%" : "0%";
+        modal.querySelector(`[data-label="${i}"]`).style.color = i <= current ? "#0f172a" : "#94a3b8";
+      });
+      modal.querySelector("#daftarNomorTahap").textContent = `TAHAP ${current + 1} DARI 3`;
+      back.style.display = current === 0 ? "none" : "inline-flex";
+      next.style.display = current === 2 ? "none" : "inline-flex";
+      next.textContent = current === 0 ? "Lanjut ke Tahap 2" : "Lanjut ke Tahap 3";
+      submit.style.display = current === 2 ? "inline-flex" : "none";
+      modal.querySelector(".daftar-scroll").scrollTop = 0;
+    }
+
+    function validateStep() {
+      const fields = Array.from(steps[current].querySelectorAll("input,select,textarea"));
+      for (const field of fields) {
+        if (field.dataset.stepRequired === "1" && !field.checkValidity()) {
+          field.reportValidity();
+          field.focus();
+          return false;
+        }
+      }
+      return true;
+    }
+
+    next.addEventListener("click", () => {
+      if (validateStep()) showStep(current + 1);
+    });
+    back.addEventListener("click", () => showStep(current - 1));
+
+    const password = modal.querySelector("#daftarPassword");
+    modal.querySelector("#toggleDaftarPassword").addEventListener("click", function() {
+      const visible = password.type === "password";
+      password.type = visible ? "text" : "password";
+      this.setAttribute("aria-pressed", visible ? "true" : "false");
+      this.setAttribute("aria-label", visible ? "Sembunyikan password" : "Tampilkan password");
+    });
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+      if (current !== 2) {
+        if (validateStep()) showStep(current + 1);
+        return;
+      }
+      if (!validateStep()) return;
+      kirimPendaftaranGuru(event);
+    });
+
+    showStep(0);
     try {
-        const master = await apiPost({ action: "pegawai_master_public" });
-        if (!master || master.status !== "sukses" || !Array.isArray(master.data)) throw new Error(master?.pesan || "Daftar lembaga tidak dapat dimuat.");
-        const select = modal.querySelector("#daftarKodeLembaga");
-        select.innerHTML = '<option value="">-- Pilih lembaga --</option>' + master.data.map(x => `<option value="${String(x.kode).replace(/&/g,"&amp;").replace(/"/g,"&quot;")}">${String(x.nama).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</option>`).join("");
-        modal.querySelector("#statusDaftarLembaga").textContent = master.data.length ? "Pilih lembaga tempat Anda bertugas." : "Belum ada lembaga pada master Data_Lembaga.";
-        if (!master.data.length) modal.querySelector("#btnKirimDaftarGuru").disabled = true;
+      const master = await apiPost({ action: "pegawai_master_public" });
+      if (!master || master.status !== "sukses" || !Array.isArray(master.data)) throw new Error(master?.pesan || "Daftar lembaga tidak dapat dimuat.");
+      const select = modal.querySelector("#daftarKodeLembaga");
+      select.innerHTML = '<option value="">-- Pilih lembaga --</option>' + master.data.map(x => `<option value="${String(x.kode).replace(/&/g,"&amp;").replace(/"/g,"&quot;")}">${String(x.nama).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</option>`).join("");
+      modal.querySelector("#statusDaftarLembaga").textContent = master.data.length ? "Pilih lembaga tempat Anda bertugas." : "Belum ada lembaga pada master Data_Lembaga.";
+      if (!master.data.length) submit.disabled = true;
     } catch (err) {
-        modal.querySelector("#daftarKodeLembaga").innerHTML = '<option value="">Gagal memuat lembaga</option>';
-        modal.querySelector("#statusDaftarLembaga").textContent = err.message || "Periksa koneksi database.";
-        modal.querySelector("#btnKirimDaftarGuru").disabled = true;
+      modal.querySelector("#daftarKodeLembaga").innerHTML = '<option value="">Gagal memuat lembaga</option>';
+      modal.querySelector("#statusDaftarLembaga").textContent = err.message || "Periksa koneksi database.";
+      submit.disabled = true;
     }
 }
-
 async function kirimPendaftaranGuru(event) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -1584,8 +1707,9 @@ async function prosesLogin(event) {
 
         terapkanHakMenu();
         gantiView("view-app");
-        // Data master dan riwayat absensi dimuat bersamaan agar waktu tunggu login lebih singkat.
-        await Promise.allSettled([muatSemuaData(), muatAbsensi()]);
+        await muatSemuaData();
+        // Muat catatan absensi sejak login agar statistik dashboard tidak tetap 0.
+        await muatAbsensi();
         perbaruiStatistik();
         bukaMenu("dashboard");
         document.getElementById("kartuBarcodeGuru")?.classList.add("hidden");
@@ -1936,46 +2060,10 @@ function renderTabelLembaga() {
         </table>`;
 }
 
-async function refreshDataPegawaiDanPendaftaran() {
-    const tombol = document.getElementById("btnRefreshPegawai");
-    if (tombol && tombol.disabled) return;
-    const labelAwal = tombol ? tombol.innerHTML : "";
-    if (tombol) { tombol.disabled = true; tombol.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memperbarui...'; }
-    try {
-        await muatDataPegawai();
-        perbaruiStatistik();
-        if (window.Swal) await Swal.fire({ toast: true, position: "top-end", timer: 1800, showConfirmButton: false, icon: "success", title: "Data guru berhasil diperbarui" });
-    } catch (e) {
-        await tampilPesan("Refresh gagal", e.message || "Data guru belum berhasil diperbarui.", "error");
-    } finally {
-        if (tombol) { tombol.disabled = false; tombol.innerHTML = labelAwal; }
-    }
-}
-
-async function refreshDataAbsensi() {
-    const tombol = document.getElementById("btnRefreshAbsensi");
-    if (tombol && tombol.disabled) return;
-    const labelAwal = tombol ? tombol.innerHTML : "";
-    if (tombol) { tombol.disabled = true; tombol.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memuat...'; }
-    try {
-        await muatAbsensi();
-        perbaruiStatistik();
-        if (window.Swal) await Swal.fire({ toast: true, position: "top-end", timer: 1800, showConfirmButton: false, icon: "success", title: "Data absensi berhasil diperbarui" });
-    } catch (e) {
-        await tampilPesan("Refresh gagal", e.message || "Data absensi belum berhasil diperbarui.", "error");
-    } finally {
-        if (tombol) { tombol.disabled = false; tombol.innerHTML = labelAwal; }
-    }
-}
-
 async function muatDataPegawai() {
     try {
-        const hasilMuat = await Promise.allSettled([
-            muatPendaftaranGuruDiDataPegawai(),
-            ambilData("pegawai")
-        ]);
-        if (hasilMuat[1].status !== "fulfilled") throw hasilMuat[1].reason;
-        dataPegawai = hasilMuat[1].value;
+        await muatPendaftaranGuruDiDataPegawai();
+        dataPegawai = await ambilData("pegawai");
         // Abaikan baris judul spreadsheet jika ikut dikirim oleh backend.
         // Filter ini juga berlaku untuk tabel, pilihan absensi, dan statistik pegawai.
         dataPegawai = (Array.isArray(dataPegawai) ? dataPegawai : []).filter(function (b) {
@@ -2846,70 +2934,173 @@ async function siapkanLaporanAbsensiBulanan() {
 async function muatLaporanAbsensiBulanan() {
     const target = document.getElementById("hasilLaporanAbsensiBulanan");
     if (!target) return;
+
     if (!sesiAnisah.token || sesiAnisah.level !== "Admin_Pusat") {
-        target.innerHTML = '<p class="text-red-600">Laporan ini hanya tersedia untuk Admin Pusat.</p>';
+        target.innerHTML =
+            '<p class="text-red-600">Laporan ini hanya tersedia untuk Admin Pusat.</p>';
         return;
     }
-    target.innerHTML = '<p class="text-slate-500">Sedang memuat data absensi...</p>';
+
+    target.innerHTML =
+        '<p class="text-slate-500">Sedang memuat data absensi...</p>';
+
     try {
         const bulan = Number(document.getElementById("laporanBulan").value);
         const tahun = Number(document.getElementById("laporanTahun").value);
-        const kodeLembaga = String(document.getElementById("laporanLembaga").value || "").trim();
+        const kodeLembaga = String(
+            document.getElementById("laporanLembaga").value || ""
+        ).trim();
+
+        // Tanpa filter tanggal agar laporan mengambil seluruh riwayat.
         const hasil = await apiPost({ action: "absensi_list" });
-        if (hasil.status !== "sukses") throw new Error(hasil.pesan || "Data absensi gagal dimuat.");
+
+        if (hasil.status !== "sukses") {
+            throw new Error(hasil.pesan || "Data absensi gagal dimuat.");
+        }
+
         const semuaData = Array.isArray(hasil.data) ? hasil.data : [];
-        if (!semuaData.length) { target.innerHTML = '<p class="text-slate-500">Belum ada data absensi.</p>'; return; }
-        const headers = Array.isArray(semuaData[0]) ? semuaData[0].map(h => String(h || "").trim()) : [];
+        if (!semuaData.length) {
+            target.innerHTML =
+                '<p class="text-slate-500">Belum ada data absensi.</p>';
+            return;
+        }
+
+        const headers = Array.isArray(semuaData[0])
+            ? semuaData[0].map(function (h) {
+                return String(h || "").trim();
+            })
+            : [];
+
         const barisData = semuaData.slice(1);
-        const cocok = barisData.filter(baris => {
-            const tanggal = tanggalLaporanValid(kolomLaporanAbsensi(baris, headers, "Tanggal"));
-            if (!tanggal || tanggal.bulan !== bulan || tanggal.tahun !== tahun) return false;
-            if (kodeLembaga) {
-                const kode = String(kolomLaporanAbsensi(baris, headers, "Kode_Lembaga") || "").trim();
-                if (kode.toLowerCase() !== kodeLembaga.toLowerCase()) return false;
+        const rekap = {
+            Hadir: 0,
+            Izin: 0,
+            Sakit: 0,
+            Alpa: 0,
+            Lainnya: 0
+        };
+
+        const cocok = barisData.filter(function (baris) {
+            const tanggal = tanggalLaporanValid(
+                kolomLaporanAbsensi(baris, headers, "Tanggal")
+            );
+
+            if (!tanggal || tanggal.bulan !== bulan ||
+                tanggal.tahun !== tahun) {
+                return false;
             }
+
+            if (kodeLembaga) {
+                const kode = String(
+                    kolomLaporanAbsensi(baris, headers, "Kode_Lembaga") || ""
+                ).trim();
+
+                if (kode.toLowerCase() !== kodeLembaga.toLowerCase()) {
+                    return false;
+                }
+            }
+
             return true;
         });
-        const rekap = { Hadir:0, Terlambat:0, Izin:0, Sakit:0, Alpa:0, "Pulang Duluan":0, "Pulang Normal":0, "Pulang Terlambat":0, Lainnya:0 };
-        cocok.forEach(baris => {
-            const masuk = String(kolomLaporanAbsensi(baris, headers, "Status") || "").trim().toLowerCase();
-            const pulang = String(kolomLaporanAbsensi(baris, headers, "Status_Pulang") || "").trim();
-            if (masuk === "hadir") rekap.Hadir++;
-            else if (masuk === "terlambat") rekap.Terlambat++;
-            else if (masuk === "izin") rekap.Izin++;
-            else if (masuk === "sakit") rekap.Sakit++;
-            else if (masuk === "alpa" || masuk === "alfa") rekap.Alpa++;
-            else if (masuk) rekap.Lainnya++;
-            if (pulang === "Pulang Duluan") rekap["Pulang Duluan"]++;
-            else if (pulang === "Pulang Normal") rekap["Pulang Normal"]++;
-            else if (pulang === "Pulang Terlambat") rekap["Pulang Terlambat"]++;
+
+        cocok.forEach(function (baris) {
+            const status = String(
+                kolomLaporanAbsensi(baris, headers, "Status") || ""
+            ).trim().toLowerCase();
+
+            if (status === "hadir") rekap.Hadir++;
+            else if (status === "izin") rekap.Izin++;
+            else if (status === "sakit") rekap.Sakit++;
+            else if (status === "alpa" || status === "alfa") rekap.Alpa++;
+            else rekap.Lainnya++;
         });
-        laporanAbsensiBulananCache = cocok.map(baris => ({
-            tanggal: kolomLaporanAbsensi(baris, headers, "Tanggal"),
-            nama: kolomLaporanAbsensi(baris, headers, "Nama_Pegawai"),
-            kode: kolomLaporanAbsensi(baris, headers, "Kode_Lembaga"),
-            status: kolomLaporanAbsensi(baris, headers, "Status"),
-            masuk: kolomLaporanAbsensi(baris, headers, "Jam_Masuk"),
-            pulang: kolomLaporanAbsensi(baris, headers, "Jam_Pulang"),
-            statusPulang: kolomLaporanAbsensi(baris, headers, "Status_Pulang"),
-            alasan: kolomLaporanAbsensi(baris, headers, "Alasan_Terlambat"),
-            keteranganTerlambat: kolomLaporanAbsensi(baris, headers, "Keterangan_Terlambat"),
-            keterangan: kolomLaporanAbsensi(baris, headers, "Keterangan")
-        }));
-        const namaBulan = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][bulan - 1];
+
+        laporanAbsensiBulananCache = cocok.map(function (baris) {
+            return {
+                tanggal: kolomLaporanAbsensi(baris, headers, "Tanggal"),
+                nama: kolomLaporanAbsensi(baris, headers, "Nama_Pegawai"),
+                kode: kolomLaporanAbsensi(baris, headers, "Kode_Lembaga"),
+                status: kolomLaporanAbsensi(baris, headers, "Status"),
+                masuk: kolomLaporanAbsensi(baris, headers, "Jam_Masuk"),
+                pulang: kolomLaporanAbsensi(baris, headers, "Jam_Pulang"),
+                keterangan: kolomLaporanAbsensi(baris, headers, "Keterangan")
+            };
+        });
+
+        const namaBulan = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ][bulan - 1];
+
         const pilihan = document.getElementById("laporanLembaga");
-        const namaLembaga = pilihan.options[pilihan.selectedIndex]?.text || "Semua Lembaga";
+        const namaLembaga = pilihan.options[pilihan.selectedIndex].text;
+
         target.innerHTML = `
             <div id="isiCetakLaporanBulanan" class="space-y-5">
-                <div class="text-center border-b pb-4"><h3 class="text-xl font-black">YAYASAN ANISAH FOUNDATION</h3><p class="font-bold mt-2">LAPORAN ABSENSI BULANAN</p><p class="text-sm">${escapeHTML(namaBulan)} ${tahun}</p><p class="text-sm">Lembaga: ${escapeHTML(namaLembaga)}</p></div>
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">${Object.entries(rekap).map(([nama,jumlah]) => `<div class="rounded-xl border bg-slate-50 p-4"><p class="text-xs text-slate-500">${escapeHTML(nama)}</p><p class="text-2xl font-black">${jumlah}</p></div>`).join("")}</div>
-                <p class="text-sm text-slate-600">Total catatan absensi: <strong>${cocok.length}</strong>. Rekap berdasarkan catatan yang tersimpan. Status pulang dihitung terpisah dari status masuk.</p>
-                <div class="overflow-x-auto"><table class="min-w-full text-xs md:text-sm border-collapse"><thead><tr class="bg-slate-100 text-left">
-                    <th class="border p-2">No.</th><th class="border p-2">Tanggal</th><th class="border p-2">Nama Pegawai</th><th class="border p-2">Kode Lembaga</th><th class="border p-2">Status Masuk</th><th class="border p-2">Jam Masuk</th><th class="border p-2">Alasan Terlambat</th><th class="border p-2">Keterangan Terlambat</th><th class="border p-2">Jam Pulang</th><th class="border p-2">Status Pulang</th>
-                </tr></thead><tbody>${laporanAbsensiBulananCache.map((b,i) => `<tr><td class="border p-2">${i+1}</td><td class="border p-2">${escapeHTML(b.tanggal)}</td><td class="border p-2">${escapeHTML(b.nama)}</td><td class="border p-2">${escapeHTML(b.kode)}</td><td class="border p-2">${escapeHTML(b.status)}</td><td class="border p-2">${escapeHTML(b.masuk)}</td><td class="border p-2">${escapeHTML(b.alasan)}</td><td class="border p-2">${escapeHTML(b.keteranganTerlambat || b.keterangan)}</td><td class="border p-2">${escapeHTML(b.pulang)}</td><td class="border p-2">${escapeHTML(b.statusPulang)}</td></tr>`).join("")}${cocok.length ? "" : `<tr><td colspan="10" class="border p-4 text-center text-slate-500">Tidak ada catatan absensi pada periode ini.</td></tr>`}</tbody></table></div>
+                <div class="text-center border-b pb-4">
+                    <h3 class="text-xl font-black">YAYASAN ANISAH FOUNDATION</h3>
+                    <p class="font-bold mt-2">LAPORAN ABSENSI BULANAN</p>
+                    <p class="text-sm">${escapeHTML(namaBulan)} ${tahun}</p>
+                    <p class="text-sm">Lembaga: ${escapeHTML(namaLembaga)}</p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    ${Object.entries(rekap).map(function ([nama, jumlah]) {
+                        return `
+                            <div class="rounded-xl border bg-slate-50 p-4">
+                                <p class="text-xs text-slate-500">${nama}</p>
+                                <p class="text-2xl font-black">${jumlah}</p>
+                            </div>`;
+                    }).join("")}
+                </div>
+
+                <p class="text-sm text-slate-600">
+                    Total catatan absensi: <strong>${cocok.length}</strong>.
+                    Rekap menghitung catatan yang tersimpan, bukan hari kerja
+                    tanpa catatan absensi.
+                </p>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-xs md:text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-left">
+                                <th class="border p-2">No.</th>
+                                <th class="border p-2">Tanggal</th>
+                                <th class="border p-2">Nama Pegawai</th>
+                                <th class="border p-2">Kode Lembaga</th>
+                                <th class="border p-2">Status</th>
+                                <th class="border p-2">Masuk</th>
+                                <th class="border p-2">Pulang</th>
+                                <th class="border p-2">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${laporanAbsensiBulananCache.map(function (b, i) {
+                                return `<tr>
+                                    <td class="border p-2">${i + 1}</td>
+                                    <td class="border p-2">${escapeHTML(b.tanggal)}</td>
+                                    <td class="border p-2">${escapeHTML(b.nama)}</td>
+                                    <td class="border p-2">${escapeHTML(b.kode)}</td>
+                                    <td class="border p-2">${escapeHTML(b.status)}</td>
+                                    <td class="border p-2">${escapeHTML(b.masuk)}</td>
+                                    <td class="border p-2">${escapeHTML(b.pulang)}</td>
+                                    <td class="border p-2">${escapeHTML(b.keterangan)}</td>
+                                </tr>`;
+                            }).join("")}
+                            ${cocok.length ? "" : `
+                                <tr>
+                                    <td colspan="8" class="border p-4 text-center text-slate-500">
+                                        Tidak ada catatan absensi pada periode ini.
+                                    </td>
+                                </tr>`}
+                        </tbody>
+                    </table>
+                </div>
             </div>`;
     } catch (error) {
-        target.innerHTML = '<p class="text-red-600">Gagal memuat laporan: ' + escapeHTML(error.message) + '</p>';
+        target.innerHTML =
+            '<p class="text-red-600">Gagal memuat laporan: ' +
+            escapeHTML(error.message) + '</p>';
     }
 }
 
@@ -3842,30 +4033,6 @@ document.addEventListener('DOMContentLoaded', renderKartuProfilLembaga);
 let pemindaiAbsensiGuru = null;
 let prosesScanGuru = false;
 
-async function mintaAlasanKeterlambatanGuru() {
-  if (!window.Swal) throw new Error("Form alasan keterlambatan tidak dapat dibuka. Muat ulang halaman.");
-  const opsi = ["Kendala kendaraan atau perjalanan", "Kecelakaan atau musibah di jalan", "Urusan keluarga", "Kondisi kesehatan", "Tugas atau kegiatan kedinasan", "Keperluan pribadi", "Lainnya"];
-  const pilihan = opsi.map(x => `<option value="${escapeHTML(x)}">${escapeHTML(x)}</option>`).join("");
-  const hasil = await Swal.fire({
-    title: "Konfirmasi Keterlambatan",
-    html: `<p class="text-sm text-slate-600 mb-3">Waktu server menunjukkan Anda terlambat. Pilih alasan dan tuliskan penjelasan singkat.</p><label for="alasanTerlambatQR" class="block text-left text-sm font-bold mb-1">Alasan keterlambatan <span class="text-red-600">*</span></label><select id="alasanTerlambatQR" class="swal2-select" style="width:100%;margin:0 0 12px"><option value="">Pilih alasan</option>${pilihan}</select><label for="keteranganTerlambatQR" class="block text-left text-sm font-bold mb-1">Keterangan / penjelasan <span class="text-red-600">*</span></label><textarea id="keteranganTerlambatQR" class="swal2-textarea" style="width:100%;margin:0" maxlength="1000" placeholder="Jelaskan penyebab keterlambatan..."></textarea>`,
-    confirmButtonText: "Kirim Absensi",
-    showCancelButton: false,
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    focusConfirm: false,
-    preConfirm: () => {
-      const alasan = document.getElementById("alasanTerlambatQR").value;
-      const keterangan = document.getElementById("keteranganTerlambatQR").value.trim();
-      if (!alasan) { Swal.showValidationMessage("Silakan pilih alasan keterlambatan."); return false; }
-      if (!keterangan) { Swal.showValidationMessage("Keterangan keterlambatan wajib diisi."); return false; }
-      return { alasan_terlambat: alasan, keterangan_terlambat: keterangan };
-    }
-  });
-  if (!hasil.isConfirmed || !hasil.value) throw new Error("Pengisian alasan keterlambatan belum selesai.");
-  return hasil.value;
-}
-
 async function mulaiScanAbsensiGuru() {
   const status = document.getElementById("statusScanGuru");
   const reader = document.getElementById("readerAbsensiGuru");
@@ -3898,24 +4065,19 @@ async function mulaiScanAbsensiGuru() {
 
           if (status) status.textContent = "Memvalidasi QR Code...";
 
-          let hasil = await apiPost({ action: "barcode_absensi_scan", token_qr: teksQR });
-          if (hasil && hasil.status === "perlu_alasan") {
-            if (status) status.textContent = "Memerlukan alasan keterlambatan...";
-            const dataAlasan = await mintaAlasanKeterlambatanGuru();
-            hasil = await apiPost({
-              action: "barcode_absensi_scan", token_qr: teksQR,
-              alasan_terlambat: dataAlasan.alasan_terlambat,
-              keterangan_terlambat: dataAlasan.keterangan_terlambat
-            });
+          const hasil = await apiPost({
+            action: "barcode_absensi_scan",
+            token_qr: teksQR
+          });
+
+          if (!hasil || hasil.status !== "sukses") {
+            throw new Error(hasil?.pesan || "QR Code tidak valid.");
           }
-          if (!hasil || hasil.status !== "sukses") throw new Error(hasil?.pesan || "QR Code tidak valid.");
+
           if (status) {
-            const labelStatus = hasil.status_masuk || hasil.status_pulang || "";
-            status.textContent = (hasil.pesan || "Absensi berhasil.") + (labelStatus ? " Status: " + labelStatus + "." : "") + (hasil.waktu ? " Pukul " + hasil.waktu + " WIB" : "");
-          }
-          if (hasil.mode === "masuk" || hasil.mode === "pulang") {
-            await muatAbsensi();
-            perbaruiStatistik();
+            status.textContent =
+              (hasil.pesan || "Absensi berhasil.") +
+              (hasil.waktu ? " Pukul " + hasil.waktu : "");
           }
         } catch (err) {
           if (status) {
