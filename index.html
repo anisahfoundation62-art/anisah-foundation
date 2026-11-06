@@ -1571,9 +1571,8 @@ async function prosesLogin(event) {
 
         terapkanHakMenu();
         gantiView("view-app");
-        await muatSemuaData();
-        // Muat catatan absensi sejak login agar statistik dashboard tidak tetap 0.
-        await muatAbsensi();
+        // Data master dan riwayat absensi dimuat bersamaan agar waktu tunggu login lebih singkat.
+        await Promise.allSettled([muatSemuaData(), muatAbsensi()]);
         perbaruiStatistik();
         bukaMenu("dashboard");
         document.getElementById("kartuBarcodeGuru")?.classList.add("hidden");
@@ -2798,173 +2797,70 @@ async function siapkanLaporanAbsensiBulanan() {
 async function muatLaporanAbsensiBulanan() {
     const target = document.getElementById("hasilLaporanAbsensiBulanan");
     if (!target) return;
-
     if (!sesiAnisah.token || sesiAnisah.level !== "Admin_Pusat") {
-        target.innerHTML =
-            '<p class="text-red-600">Laporan ini hanya tersedia untuk Admin Pusat.</p>';
+        target.innerHTML = '<p class="text-red-600">Laporan ini hanya tersedia untuk Admin Pusat.</p>';
         return;
     }
-
-    target.innerHTML =
-        '<p class="text-slate-500">Sedang memuat data absensi...</p>';
-
+    target.innerHTML = '<p class="text-slate-500">Sedang memuat data absensi...</p>';
     try {
         const bulan = Number(document.getElementById("laporanBulan").value);
         const tahun = Number(document.getElementById("laporanTahun").value);
-        const kodeLembaga = String(
-            document.getElementById("laporanLembaga").value || ""
-        ).trim();
-
-        // Tanpa filter tanggal agar laporan mengambil seluruh riwayat.
+        const kodeLembaga = String(document.getElementById("laporanLembaga").value || "").trim();
         const hasil = await apiPost({ action: "absensi_list" });
-
-        if (hasil.status !== "sukses") {
-            throw new Error(hasil.pesan || "Data absensi gagal dimuat.");
-        }
-
+        if (hasil.status !== "sukses") throw new Error(hasil.pesan || "Data absensi gagal dimuat.");
         const semuaData = Array.isArray(hasil.data) ? hasil.data : [];
-        if (!semuaData.length) {
-            target.innerHTML =
-                '<p class="text-slate-500">Belum ada data absensi.</p>';
-            return;
-        }
-
-        const headers = Array.isArray(semuaData[0])
-            ? semuaData[0].map(function (h) {
-                return String(h || "").trim();
-            })
-            : [];
-
+        if (!semuaData.length) { target.innerHTML = '<p class="text-slate-500">Belum ada data absensi.</p>'; return; }
+        const headers = Array.isArray(semuaData[0]) ? semuaData[0].map(h => String(h || "").trim()) : [];
         const barisData = semuaData.slice(1);
-        const rekap = {
-            Hadir: 0,
-            Izin: 0,
-            Sakit: 0,
-            Alpa: 0,
-            Lainnya: 0
-        };
-
-        const cocok = barisData.filter(function (baris) {
-            const tanggal = tanggalLaporanValid(
-                kolomLaporanAbsensi(baris, headers, "Tanggal")
-            );
-
-            if (!tanggal || tanggal.bulan !== bulan ||
-                tanggal.tahun !== tahun) {
-                return false;
-            }
-
+        const cocok = barisData.filter(baris => {
+            const tanggal = tanggalLaporanValid(kolomLaporanAbsensi(baris, headers, "Tanggal"));
+            if (!tanggal || tanggal.bulan !== bulan || tanggal.tahun !== tahun) return false;
             if (kodeLembaga) {
-                const kode = String(
-                    kolomLaporanAbsensi(baris, headers, "Kode_Lembaga") || ""
-                ).trim();
-
-                if (kode.toLowerCase() !== kodeLembaga.toLowerCase()) {
-                    return false;
-                }
+                const kode = String(kolomLaporanAbsensi(baris, headers, "Kode_Lembaga") || "").trim();
+                if (kode.toLowerCase() !== kodeLembaga.toLowerCase()) return false;
             }
-
             return true;
         });
-
-        cocok.forEach(function (baris) {
-            const status = String(
-                kolomLaporanAbsensi(baris, headers, "Status") || ""
-            ).trim().toLowerCase();
-
-            if (status === "hadir") rekap.Hadir++;
-            else if (status === "izin") rekap.Izin++;
-            else if (status === "sakit") rekap.Sakit++;
-            else if (status === "alpa" || status === "alfa") rekap.Alpa++;
-            else rekap.Lainnya++;
+        const rekap = { Hadir:0, Terlambat:0, Izin:0, Sakit:0, Alpa:0, "Pulang Duluan":0, "Pulang Normal":0, "Pulang Terlambat":0, Lainnya:0 };
+        cocok.forEach(baris => {
+            const masuk = String(kolomLaporanAbsensi(baris, headers, "Status") || "").trim().toLowerCase();
+            const pulang = String(kolomLaporanAbsensi(baris, headers, "Status_Pulang") || "").trim();
+            if (masuk === "hadir") rekap.Hadir++;
+            else if (masuk === "terlambat") rekap.Terlambat++;
+            else if (masuk === "izin") rekap.Izin++;
+            else if (masuk === "sakit") rekap.Sakit++;
+            else if (masuk === "alpa" || masuk === "alfa") rekap.Alpa++;
+            else if (masuk) rekap.Lainnya++;
+            if (pulang === "Pulang Duluan") rekap["Pulang Duluan"]++;
+            else if (pulang === "Pulang Normal") rekap["Pulang Normal"]++;
+            else if (pulang === "Pulang Terlambat") rekap["Pulang Terlambat"]++;
         });
-
-        laporanAbsensiBulananCache = cocok.map(function (baris) {
-            return {
-                tanggal: kolomLaporanAbsensi(baris, headers, "Tanggal"),
-                nama: kolomLaporanAbsensi(baris, headers, "Nama_Pegawai"),
-                kode: kolomLaporanAbsensi(baris, headers, "Kode_Lembaga"),
-                status: kolomLaporanAbsensi(baris, headers, "Status"),
-                masuk: kolomLaporanAbsensi(baris, headers, "Jam_Masuk"),
-                pulang: kolomLaporanAbsensi(baris, headers, "Jam_Pulang"),
-                keterangan: kolomLaporanAbsensi(baris, headers, "Keterangan")
-            };
-        });
-
-        const namaBulan = [
-            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-        ][bulan - 1];
-
+        laporanAbsensiBulananCache = cocok.map(baris => ({
+            tanggal: kolomLaporanAbsensi(baris, headers, "Tanggal"),
+            nama: kolomLaporanAbsensi(baris, headers, "Nama_Pegawai"),
+            kode: kolomLaporanAbsensi(baris, headers, "Kode_Lembaga"),
+            status: kolomLaporanAbsensi(baris, headers, "Status"),
+            masuk: kolomLaporanAbsensi(baris, headers, "Jam_Masuk"),
+            pulang: kolomLaporanAbsensi(baris, headers, "Jam_Pulang"),
+            statusPulang: kolomLaporanAbsensi(baris, headers, "Status_Pulang"),
+            alasan: kolomLaporanAbsensi(baris, headers, "Alasan_Terlambat"),
+            keteranganTerlambat: kolomLaporanAbsensi(baris, headers, "Keterangan_Terlambat"),
+            keterangan: kolomLaporanAbsensi(baris, headers, "Keterangan")
+        }));
+        const namaBulan = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][bulan - 1];
         const pilihan = document.getElementById("laporanLembaga");
-        const namaLembaga = pilihan.options[pilihan.selectedIndex].text;
-
+        const namaLembaga = pilihan.options[pilihan.selectedIndex]?.text || "Semua Lembaga";
         target.innerHTML = `
             <div id="isiCetakLaporanBulanan" class="space-y-5">
-                <div class="text-center border-b pb-4">
-                    <h3 class="text-xl font-black">YAYASAN ANISAH FOUNDATION</h3>
-                    <p class="font-bold mt-2">LAPORAN ABSENSI BULANAN</p>
-                    <p class="text-sm">${escapeHTML(namaBulan)} ${tahun}</p>
-                    <p class="text-sm">Lembaga: ${escapeHTML(namaLembaga)}</p>
-                </div>
-
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    ${Object.entries(rekap).map(function ([nama, jumlah]) {
-                        return `
-                            <div class="rounded-xl border bg-slate-50 p-4">
-                                <p class="text-xs text-slate-500">${nama}</p>
-                                <p class="text-2xl font-black">${jumlah}</p>
-                            </div>`;
-                    }).join("")}
-                </div>
-
-                <p class="text-sm text-slate-600">
-                    Total catatan absensi: <strong>${cocok.length}</strong>.
-                    Rekap menghitung catatan yang tersimpan, bukan hari kerja
-                    tanpa catatan absensi.
-                </p>
-
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-xs md:text-sm border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100 text-left">
-                                <th class="border p-2">No.</th>
-                                <th class="border p-2">Tanggal</th>
-                                <th class="border p-2">Nama Pegawai</th>
-                                <th class="border p-2">Kode Lembaga</th>
-                                <th class="border p-2">Status</th>
-                                <th class="border p-2">Masuk</th>
-                                <th class="border p-2">Pulang</th>
-                                <th class="border p-2">Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${laporanAbsensiBulananCache.map(function (b, i) {
-                                return `<tr>
-                                    <td class="border p-2">${i + 1}</td>
-                                    <td class="border p-2">${escapeHTML(b.tanggal)}</td>
-                                    <td class="border p-2">${escapeHTML(b.nama)}</td>
-                                    <td class="border p-2">${escapeHTML(b.kode)}</td>
-                                    <td class="border p-2">${escapeHTML(b.status)}</td>
-                                    <td class="border p-2">${escapeHTML(b.masuk)}</td>
-                                    <td class="border p-2">${escapeHTML(b.pulang)}</td>
-                                    <td class="border p-2">${escapeHTML(b.keterangan)}</td>
-                                </tr>`;
-                            }).join("")}
-                            ${cocok.length ? "" : `
-                                <tr>
-                                    <td colspan="8" class="border p-4 text-center text-slate-500">
-                                        Tidak ada catatan absensi pada periode ini.
-                                    </td>
-                                </tr>`}
-                        </tbody>
-                    </table>
-                </div>
+                <div class="text-center border-b pb-4"><h3 class="text-xl font-black">YAYASAN ANISAH FOUNDATION</h3><p class="font-bold mt-2">LAPORAN ABSENSI BULANAN</p><p class="text-sm">${escapeHTML(namaBulan)} ${tahun}</p><p class="text-sm">Lembaga: ${escapeHTML(namaLembaga)}</p></div>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">${Object.entries(rekap).map(([nama,jumlah]) => `<div class="rounded-xl border bg-slate-50 p-4"><p class="text-xs text-slate-500">${escapeHTML(nama)}</p><p class="text-2xl font-black">${jumlah}</p></div>`).join("")}</div>
+                <p class="text-sm text-slate-600">Total catatan absensi: <strong>${cocok.length}</strong>. Rekap berdasarkan catatan yang tersimpan. Status pulang dihitung terpisah dari status masuk.</p>
+                <div class="overflow-x-auto"><table class="min-w-full text-xs md:text-sm border-collapse"><thead><tr class="bg-slate-100 text-left">
+                    <th class="border p-2">No.</th><th class="border p-2">Tanggal</th><th class="border p-2">Nama Pegawai</th><th class="border p-2">Kode Lembaga</th><th class="border p-2">Status Masuk</th><th class="border p-2">Jam Masuk</th><th class="border p-2">Alasan Terlambat</th><th class="border p-2">Keterangan Terlambat</th><th class="border p-2">Jam Pulang</th><th class="border p-2">Status Pulang</th>
+                </tr></thead><tbody>${laporanAbsensiBulananCache.map((b,i) => `<tr><td class="border p-2">${i+1}</td><td class="border p-2">${escapeHTML(b.tanggal)}</td><td class="border p-2">${escapeHTML(b.nama)}</td><td class="border p-2">${escapeHTML(b.kode)}</td><td class="border p-2">${escapeHTML(b.status)}</td><td class="border p-2">${escapeHTML(b.masuk)}</td><td class="border p-2">${escapeHTML(b.alasan)}</td><td class="border p-2">${escapeHTML(b.keteranganTerlambat || b.keterangan)}</td><td class="border p-2">${escapeHTML(b.pulang)}</td><td class="border p-2">${escapeHTML(b.statusPulang)}</td></tr>`).join("")}${cocok.length ? "" : `<tr><td colspan="10" class="border p-4 text-center text-slate-500">Tidak ada catatan absensi pada periode ini.</td></tr>`}</tbody></table></div>
             </div>`;
     } catch (error) {
-        target.innerHTML =
-            '<p class="text-red-600">Gagal memuat laporan: ' +
-            escapeHTML(error.message) + '</p>';
+        target.innerHTML = '<p class="text-red-600">Gagal memuat laporan: ' + escapeHTML(error.message) + '</p>';
     }
 }
 
@@ -3897,6 +3793,30 @@ document.addEventListener('DOMContentLoaded', renderKartuProfilLembaga);
 let pemindaiAbsensiGuru = null;
 let prosesScanGuru = false;
 
+async function mintaAlasanKeterlambatanGuru() {
+  if (!window.Swal) throw new Error("Form alasan keterlambatan tidak dapat dibuka. Muat ulang halaman.");
+  const opsi = ["Kendala kendaraan atau perjalanan", "Kecelakaan atau musibah di jalan", "Urusan keluarga", "Kondisi kesehatan", "Tugas atau kegiatan kedinasan", "Keperluan pribadi", "Lainnya"];
+  const pilihan = opsi.map(x => `<option value="${escapeHTML(x)}">${escapeHTML(x)}</option>`).join("");
+  const hasil = await Swal.fire({
+    title: "Konfirmasi Keterlambatan",
+    html: `<p class="text-sm text-slate-600 mb-3">Waktu server menunjukkan Anda terlambat. Pilih alasan dan tuliskan penjelasan singkat.</p><label for="alasanTerlambatQR" class="block text-left text-sm font-bold mb-1">Alasan keterlambatan <span class="text-red-600">*</span></label><select id="alasanTerlambatQR" class="swal2-select" style="width:100%;margin:0 0 12px"><option value="">Pilih alasan</option>${pilihan}</select><label for="keteranganTerlambatQR" class="block text-left text-sm font-bold mb-1">Keterangan / penjelasan <span class="text-red-600">*</span></label><textarea id="keteranganTerlambatQR" class="swal2-textarea" style="width:100%;margin:0" maxlength="1000" placeholder="Jelaskan penyebab keterlambatan..."></textarea>`,
+    confirmButtonText: "Kirim Absensi",
+    showCancelButton: false,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    focusConfirm: false,
+    preConfirm: () => {
+      const alasan = document.getElementById("alasanTerlambatQR").value;
+      const keterangan = document.getElementById("keteranganTerlambatQR").value.trim();
+      if (!alasan) { Swal.showValidationMessage("Silakan pilih alasan keterlambatan."); return false; }
+      if (!keterangan) { Swal.showValidationMessage("Keterangan keterlambatan wajib diisi."); return false; }
+      return { alasan_terlambat: alasan, keterangan_terlambat: keterangan };
+    }
+  });
+  if (!hasil.isConfirmed || !hasil.value) throw new Error("Pengisian alasan keterlambatan belum selesai.");
+  return hasil.value;
+}
+
 async function mulaiScanAbsensiGuru() {
   const status = document.getElementById("statusScanGuru");
   const reader = document.getElementById("readerAbsensiGuru");
@@ -3929,19 +3849,21 @@ async function mulaiScanAbsensiGuru() {
 
           if (status) status.textContent = "Memvalidasi QR Code...";
 
-          const hasil = await apiPost({
-            action: "barcode_absensi_scan",
-            token_qr: teksQR
-          });
-
-          if (!hasil || hasil.status !== "sukses") {
-            throw new Error(hasil?.pesan || "QR Code tidak valid.");
+          let hasil = await apiPost({ action: "barcode_absensi_scan", token_qr: teksQR });
+          if (hasil && hasil.status === "perlu_alasan") {
+            if (status) status.textContent = "Memerlukan alasan keterlambatan...";
+            const dataAlasan = await mintaAlasanKeterlambatanGuru();
+            hasil = await apiPost({
+              action: "barcode_absensi_scan", token_qr: teksQR,
+              alasan_terlambat: dataAlasan.alasan_terlambat,
+              keterangan_terlambat: dataAlasan.keterangan_terlambat
+            });
           }
-
-          if (status) {
-            status.textContent =
-              (hasil.pesan || "Absensi berhasil.") +
-              (hasil.waktu ? " Pukul " + hasil.waktu : "");
+          if (!hasil || hasil.status !== "sukses") throw new Error(hasil?.pesan || "QR Code tidak valid.");
+          if (status) status.textContent = (hasil.pesan || "Absensi berhasil.") + (hasil.waktu ? " Pukul " + hasil.waktu : "");
+          if (hasil.mode === "masuk" || hasil.mode === "pulang") {
+            await muatAbsensi();
+            perbaruiStatistik();
           }
         } catch (err) {
           if (status) {
