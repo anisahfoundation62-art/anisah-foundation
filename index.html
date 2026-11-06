@@ -873,11 +873,11 @@
             <section id="page-pegawai" class="page-portal hidden">
                 <div class="flex flex-wrap justify-between gap-3 items-center mb-6">
                     <div><h2 class="text-2xl font-black">Data Pegawai</h2><p class="text-sm text-slate-500 mt-1">Data guru dan pegawai lembaga.</p></div>
-                    <button onclick="formTambahPegawai()" class="bg-indigo-700 text-white px-4 py-3 rounded-xl font-bold"><i class="fas fa-user-plus mr-2"></i>Tambah Pegawai</button>
+                    <div class="flex flex-wrap gap-2"><button type="button" onclick="refreshDataPegawai(this)" class="bg-sky-100 text-sky-800 px-4 py-3 rounded-xl font-bold"><i class="fas fa-rotate mr-2"></i>Refresh Data</button><button onclick="formTambahPegawai()" class="bg-indigo-700 text-white px-4 py-3 rounded-xl font-bold"><i class="fas fa-user-plus mr-2"></i>Tambah Pegawai</button></div>
                 </div>
                 <div id="kontenPegawai" class="bg-white rounded-2xl border p-5 overflow-x-auto">Memuat data pegawai...</div>
                 <div class="mt-6">
-                  <h3 class="text-lg font-black mb-3">Pendaftaran Pegawai Menunggu Persetujuan</h3>
+                  <div class="flex flex-wrap items-center justify-between gap-2 mb-3"><h3 class="text-lg font-black">Pendaftaran Pegawai Menunggu Persetujuan</h3><button type="button" onclick="refreshPendaftaranGuru(this)" class="bg-sky-100 text-sky-800 px-3 py-2 rounded-lg font-bold text-sm"><i class="fas fa-rotate mr-1"></i>Refresh Pendaftaran</button></div>
                   <p class="text-sm text-slate-500 mb-3">Permohonan guru baru akan muncul di sini. Setelah disetujui, data guru ditambahkan ke Data Pegawai dan akun dibuat di Data User.</p>
                   <div id="kontenPendaftaranGuruPegawai" class="bg-white rounded-2xl border p-5 overflow-x-auto">Memuat pendaftaran...</div>
                 </div>
@@ -895,9 +895,9 @@
             </section>
 
             <section id="page-absensi" class="page-portal hidden">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-black">Absensi Pegawai</h2>
-                    <p class="text-sm text-slate-500 mt-1">Pencatatan kehadiran dan riwayat absensi.</p>
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+                    <div><h2 class="text-2xl font-black">Absensi Pegawai</h2><p class="text-sm text-slate-500 mt-1">Pencatatan kehadiran dan riwayat absensi.</p></div>
+                    <button type="button" onclick="refreshAbsensi(this)" class="bg-sky-100 text-sky-800 px-4 py-3 rounded-xl font-bold"><i class="fas fa-rotate mr-2"></i>Refresh Absensi</button>
                 </div>
                 <div id="panelBarcodeLembaga" class="hidden bg-white border rounded-2xl p-6 mb-6">
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -956,7 +956,7 @@
                         <h3 class="font-black text-lg mb-4">Riwayat Absensi</h3>
                         <div class="flex gap-2 mb-4">
                             <input id="filterAbsTanggal" type="date" class="flex-1 min-w-0 p-2 border rounded-lg">
-                            <button onclick="muatAbsensi()" class="bg-indigo-700 text-white px-4 rounded-lg font-bold">Filter</button>
+                            <button onclick="muatAbsensi()" class="bg-indigo-700 text-white px-4 rounded-lg font-bold">Tampilkan</button><button type="button" onclick="refreshAbsensi(this)" class="bg-sky-100 text-sky-800 px-3 rounded-lg font-bold" title="Ambil data terbaru"><i class="fas fa-rotate"></i></button>
                         </div>
                         <div id="kontenRiwayatAbsensi" class="overflow-x-auto text-sm">Memuat riwayat...</div>
                     </div>
@@ -1083,9 +1083,9 @@
             </section>
             
             <section id="page-akun" class="page-portal hidden">
-                <div class="mb-6"><h2 class="text-2xl font-black">Manajemen Akun</h2><p class="text-sm text-slate-500 mt-1">Pengelolaan akun pengguna sesuai kewenangan.</p></div>
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-6"><div><h2 class="text-2xl font-black">Manajemen Akun</h2><p class="text-sm text-slate-500 mt-1">Pengelolaan akun pengguna sesuai kewenangan.</p></div><button type="button" onclick="refreshManajemenAkun(this)" class="bg-sky-100 text-sky-800 px-4 py-3 rounded-xl font-bold"><i class="fas fa-rotate mr-2"></i>Refresh Data</button></div>
                 <div id="kontenAkun" class="bg-white rounded-2xl border p-5 overflow-x-auto">Memuat data akun...</div>
-                <div class="mt-6"><h3 class="text-lg font-black mb-3">Pendaftaran Pegawai Menunggu Persetujuan</h3>
+                <div class="mt-6"><div class="flex flex-wrap items-center justify-between gap-2 mb-3"><h3 class="text-lg font-black">Pendaftaran Pegawai Menunggu Persetujuan</h3><button type="button" onclick="refreshPendaftaranGuru(this)" class="bg-sky-100 text-sky-800 px-3 py-2 rounded-lg font-bold text-sm"><i class="fas fa-rotate mr-1"></i>Refresh Pendaftaran</button></div>
                   <div id="kontenPendaftaranGuru" class="bg-white rounded-2xl border p-5 overflow-x-auto">Memuat pendaftaran...</div>
                 </div>
                 <div class="mt-6"><h3 class="text-lg font-black mb-3">Permintaan Lupa Password</h3>
@@ -1643,9 +1643,8 @@ async function prosesLogin(event) {
 
         terapkanHakMenu();
         gantiView("view-app");
-        await muatSemuaData();
-        // Muat catatan absensi sejak login agar statistik dashboard tidak tetap 0.
-        await muatAbsensi();
+        // Data master dan absensi tidak saling bergantung; muat bersamaan untuk mempercepat login.
+        await Promise.allSettled([muatSemuaData(), muatAbsensi()]);
         perbaruiStatistik();
         bukaMenu("dashboard");
         document.getElementById("kartuBarcodeGuru")?.classList.add("hidden");
@@ -1996,10 +1995,59 @@ function renderTabelLembaga() {
         </table>`;
 }
 
+// Refresh mengambil data terbaru tanpa logout, tanpa memuat ulang browser, dan tanpa menghapus sesi.
+async function jalankanRefreshTombol(tombol, pekerjaan, teksSelesai) {
+    if (!sesiAnisah || !sesiAnisah.token) {
+        tampilPesan("Sesi tidak tersedia", "Silakan login kembali karena sesi sudah berakhir.", "warning");
+        return;
+    }
+    const teksAwal = tombol ? tombol.innerHTML : "";
+    if (tombol) { tombol.disabled = true; tombol.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Memuat...'; }
+    try {
+        await pekerjaan();
+        if (teksSelesai) {
+            const info = document.getElementById(teksSelesai);
+            if (info) info.textContent = "Diperbarui " + new Date().toLocaleTimeString("id-ID", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+        }
+    } catch (error) {
+        tampilPesan("Gagal memperbarui data", error.message || "Periksa koneksi internet.", "error");
+    } finally {
+        if (tombol) { tombol.disabled = false; tombol.innerHTML = teksAwal; }
+    }
+}
+
+function refreshDataPegawai(tombol) {
+    return jalankanRefreshTombol(tombol, async function () {
+        await muatDataPegawai();
+        perbaruiStatistik();
+    });
+}
+function refreshPendaftaranGuru(tombol) {
+    return jalankanRefreshTombol(tombol, async function () {
+        await Promise.allSettled([muatPendaftaranGuruMenunggu(), muatPendaftaranGuruDiDataPegawai()]);
+    });
+}
+function refreshAbsensi(tombol) {
+    return jalankanRefreshTombol(tombol, async function () {
+        await muatAbsensi();
+        perbaruiStatistik();
+    });
+}
+function refreshManajemenAkun(tombol) {
+    return jalankanRefreshTombol(tombol, async function () {
+        await muatDataAkun();
+    });
+}
+
 async function muatDataPegawai() {
     try {
-        await muatPendaftaranGuruDiDataPegawai();
-        dataPegawai = await ambilData("pegawai");
+        // Dua sumber data independen dimuat bersamaan agar halaman tidak menunggu berurutan.
+        const hasilParalel = await Promise.allSettled([
+            muatPendaftaranGuruDiDataPegawai(),
+            ambilData("pegawai")
+        ]);
+        if (hasilParalel[1].status !== "fulfilled") throw hasilParalel[1].reason;
+        dataPegawai = hasilParalel[1].value;
         // Abaikan baris judul spreadsheet jika ikut dikirim oleh backend.
         // Filter ini juga berlaku untuk tabel, pilihan absensi, dan statistik pegawai.
         dataPegawai = (Array.isArray(dataPegawai) ? dataPegawai : []).filter(function (b) {
