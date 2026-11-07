@@ -279,6 +279,317 @@
         }
 
     </style>
+
+    <!-- PENYEMPURNAAN TAMPILAN RESPONSIF ANISAH FOUNDATION
+         CSS saja: tidak mengubah ID, fungsi JavaScript, API, atau struktur data. -->
+    <style id="penyempurnaan-tampilan-anisah">
+        :root {
+            --anisah-primary: #426f9f;
+            --anisah-primary-dark: #294f78;
+            --anisah-primary-soft: #eaf3fc;
+            --anisah-border: #dce7f2;
+            --anisah-text: #26384d;
+            --anisah-muted: #64748b;
+            --anisah-surface: #ffffff;
+            --anisah-shadow: 0 8px 24px rgba(41, 79, 120, .07);
+        }
+
+        html { scroll-padding-top: 5rem; }
+        body {
+            color: var(--anisah-text);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+        img, video, canvas, svg { max-width: 100%; }
+        img { height: auto; }
+        button, input, select, textarea { font: inherit; }
+        button { -webkit-tap-highlight-color: transparent; }
+        button:focus-visible, a:focus-visible,
+        input:focus-visible, select:focus-visible, textarea:focus-visible {
+            outline: 3px solid rgba(111, 158, 214, .45);
+            outline-offset: 2px;
+        }
+
+        /* Area publik */
+        #view-public { background: #f7faff; }
+        #view-public nav {
+            border-bottom: 1px solid var(--anisah-border);
+            box-shadow: 0 4px 18px rgba(41, 79, 120, .06);
+        }
+        #view-public section[id], #beranda { scroll-margin-top: 5.5rem; }
+        #profil, #profil-lembaga, #berita { overflow-wrap: anywhere; }
+        #profil .bg-slate-50, #profil .bg-indigo-50\/70,
+        #profil .bg-amber-50\/70, #detailProfilLembaga,
+        #kartuProfilLembaga > *, #daftarBeritaPublik > * {
+            border-color: var(--anisah-border);
+        }
+        #pubVisi, #pubMisi, #detailSejarah, #detailVisi,
+        #detailMisi, #detailAlamat {
+            overflow-wrap: anywhere;
+            word-break: normal;
+            line-height: 1.8;
+        }
+        #pubMisi { white-space: pre-line; }
+        #detailMisi { padding-left: 1.35rem; }
+        #detailMisi li { padding-left: .2rem; margin-bottom: .55rem; }
+        #pubAlamatFooter { white-space: pre-line; }
+
+        /* Kartu informasi publik lebih konsisten */
+        #kartuProfilLembaga > *, #daftarBeritaPublik > *,
+        #halaman-spmb .grid > div {
+            min-width: 0;
+            border-radius: 1rem;
+            box-shadow: var(--anisah-shadow);
+        }
+        #kartuProfilLembaga img, #daftarBeritaPublik img {
+            max-width: 100%;
+            object-fit: cover;
+        }
+
+        /* Halaman login: menyelaraskan warna hijau lama ke biru pastel */
+        #view-login {
+            background: linear-gradient(135deg, #edf5ff 0%, #f8fbff 55%, #eaf3fc 100%) !important;
+        }
+        #view-login > div {
+            border-color: var(--anisah-border) !important;
+            box-shadow: 0 20px 55px rgba(41, 79, 120, .12);
+        }
+        #view-login .bg-gradient-to-r.from-emerald-800,
+        #view-login .bg-gradient-to-br.from-emerald-800,
+        #view-login .bg-gradient-to-br.via-emerald-700 {
+            background-image: linear-gradient(135deg, #315b8f, #527fb8 58%, #294f78) !important;
+        }
+        #view-login .text-emerald-700, #view-login .text-emerald-800,
+        #view-login .hover\:text-emerald-700:hover { color: #426f9f !important; }
+        #view-login .border-emerald-700 { border-color: #6f9ed6 !important; }
+        #view-login .border-emerald-100 { border-color: var(--anisah-border) !important; }
+        #view-login .bg-emerald-700, #view-login button.bg-emerald-700 {
+            background-color: #426f9f !important;
+        }
+        #view-login .hover\:bg-emerald-800:hover { background-color: #294f78 !important; }
+        #view-login .focus\:ring-emerald-500:focus { --tw-ring-color: #8bb2df !important; }
+        #view-login .accent-emerald-600 { accent-color: #527fb8; }
+
+        /* Portal admin dan pegawai */
+        #view-app { background: #f3f7fc !important; }
+        #view-app > header { background: #315b8f !important; }
+        #view-app aside {
+            border-color: var(--anisah-border) !important;
+            box-shadow: 3px 0 18px rgba(41, 79, 120, .035);
+        }
+        #view-app .page-portal { min-width: 0; }
+        #view-app .page-portal h2 { letter-spacing: -.02em; }
+        #view-app .page-portal .bg-white {
+            border-color: var(--anisah-border);
+        }
+        #view-app .page-portal table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        #view-app .page-portal th {
+            background: #edf4fc;
+            color: #294f78;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        #view-app .page-portal td, #view-app .page-portal th {
+            padding: .7rem .8rem;
+            vertical-align: top;
+        }
+        #view-app .page-portal td { overflow-wrap: anywhere; }
+        #view-app .page-portal tr + tr td { border-top: 1px solid #e8eef6; }
+        #view-app .menu-portal { transition: background-color .18s ease, color .18s ease; }
+        #view-app .menu-portal:hover,
+        #view-app .menu-portal:focus-visible { background: #eaf3fc !important; }
+        #view-app .menu-portal i { color: #527fb8 !important; }
+
+        /* Formulir konsisten dan mudah dibaca */
+        #view-app input:not([type="checkbox"]):not([type="radio"]),
+        #view-app select, #view-app textarea,
+        #view-login input:not([type="checkbox"]),
+        #halaman-form-ppdb input, #halaman-form-ppdb select,
+        #halaman-form-ppdb textarea {
+            max-width: 100%;
+            border-color: #d5e0ec;
+            border-radius: .75rem;
+        }
+        #view-app textarea, #halaman-form-ppdb textarea { line-height: 1.65; }
+        #view-app input:focus, #view-app select:focus, #view-app textarea:focus,
+        #view-login input:focus, #halaman-form-ppdb input:focus,
+        #halaman-form-ppdb select:focus, #halaman-form-ppdb textarea:focus {
+            border-color: #80a9d5;
+            box-shadow: 0 0 0 3px rgba(111, 158, 214, .13);
+        }
+
+        /* Tampilan HP dan tablet */
+        @media (max-width: 767px) {
+            #view-public nav .container { padding-left: 1rem; padding-right: 1rem; }
+            #pubNamaYayasan { font-size: 1rem; line-height: 1.25; }
+            #beranda { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+            #beranda .grid.grid-cols-2 { height: 340px; }
+            #profil, #profil-lembaga, #berita { padding-top: 3.5rem; padding-bottom: 3.5rem; }
+            #detailProfilLembaga > div:last-child { padding: 1.1rem; }
+            #view-app main { padding: 1rem; }
+            #view-app aside { padding: .75rem; }
+            #view-app aside nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .35rem; }
+            #view-app .menu-portal { min-width: 0; padding: .7rem .55rem; line-height: 1.35; }
+            #view-app .page-portal .grid { min-width: 0; }
+            #view-login { padding: .75rem; }
+            #view-login > div { border-radius: 1.25rem; }
+        }
+        @media (max-width: 420px) {
+            #view-app aside nav { grid-template-columns: 1fr 1fr; }
+            #view-app .menu-portal { font-size: .75rem; }
+            #view-app .menu-portal i { width: 1.2rem; }
+            #view-login > div > div:first-child { padding: 1.25rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+        @media print {
+            #view-app, #view-public { background: #fff !important; }
+            #view-app .page-portal th { background: #fff !important; color: #000 !important; }
+        }
+
+        /* Menu tiga titik untuk memilih portal */
+        #btnMenuPortal { flex: 0 0 auto; }
+        #menuPilihanPortal { animation: portalMenuMasuk .14s ease-out; }
+        @keyframes portalMenuMasuk {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 767px) {
+            #menuPilihanPortal { right: 0; }
+        }
+    </style>
+
+
+    <!-- PENATAAN RESPONSIVE KHUSUS HP ANISAH FOUNDATION: CSS SAJA -->
+    <style id="anisah-mobile-professional">
+      /* Dasar tipografi dan pencegahan elemen melebar pada layar kecil */
+      html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+      body { overflow-x: hidden; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      img, video, canvas, svg { max-width: 100%; }
+      button, input, select, textarea { font: inherit; }
+      #view-public *, #view-login *, #view-app * { min-width: 0; }
+      #view-public p, #view-public h1, #view-public h2, #view-public h3,
+      #view-login p, #view-login label, #view-app p, #view-app label,
+      #view-app th, #view-app td { overflow-wrap: anywhere; }
+
+      @media (max-width: 767px) {
+        body { font-size: 14px; line-height: 1.55; }
+        /* Header publik: logo, nama yayasan, dan menu tiga titik tidak bertabrakan */
+        #view-public nav { width: 100%; }
+        #view-public nav > .container {
+          display: grid !important;
+          grid-template-columns: minmax(0, 1fr) 44px;
+          align-items: center;
+          column-gap: 10px;
+          row-gap: 0;
+          padding: 9px 14px !important;
+        }
+        #view-public nav > .container > div:first-child {
+          display: flex !important;
+          align-items: center;
+          gap: 9px !important;
+          min-width: 0;
+        }
+        #pubLogo { width: 44px !important; height: 44px !important; flex: 0 0 44px; }
+        #pubNamaYayasan {
+          font-size: clamp(12px, 3.5vw, 15px) !important;
+          line-height: 1.25 !important;
+          letter-spacing: .015em !important;
+          white-space: normal;
+          overflow-wrap: anywhere;
+        }
+        #view-public nav > .container > div:first-child p {
+          font-size: 10px !important;
+          line-height: 1.35 !important;
+          margin-top: 4px !important;
+        }
+        #view-public nav > .container > div.relative {
+          grid-column: 2;
+          grid-row: 1;
+          margin: 0 !important;
+          justify-self: end;
+        }
+        #btnMenuPortal { width: 42px !important; height: 42px !important; border-radius: 12px !important; }
+        #menuPilihanPortal { width: min(230px, calc(100vw - 24px)); right: 0; top: calc(100% + 7px); }
+        #menuPilihanPortal button { min-height: 54px; font-size: 13px !important; }
+
+        /* Beranda dan judul: ukuran fleksibel, jarak lebih lega */
+        #beranda { padding: 42px 16px !important; }
+        #beranda .container { gap: 28px !important; }
+        #beranda h1 { font-size: clamp(26px, 7vw, 36px) !important; line-height: 1.18 !important; letter-spacing: -.025em; }
+        #beranda h2 { font-size: clamp(21px, 5.8vw, 28px) !important; line-height: 1.25 !important; }
+        #beranda p { font-size: 14px !important; line-height: 1.75 !important; }
+        #beranda .grid.grid-cols-2 { height: 290px !important; }
+        #view-public section[id] { scroll-margin-top: 76px; }
+        #profil, #profil-lembaga, #berita { padding: 38px 16px !important; }
+        #view-public section h2 { font-size: clamp(21px, 5.8vw, 28px) !important; line-height: 1.25 !important; }
+        #view-public section h3 { line-height: 1.35 !important; }
+        #view-public section p, #view-public section li { font-size: 13px; line-height: 1.75 !important; }
+        #kartuProfilLembaga, #daftarBeritaPublik { gap: 12px !important; }
+        #kartuProfilLembaga > *, #daftarBeritaPublik > * { padding: 14px !important; }
+        #detailProfilLembaga > div:last-child { padding: 14px !important; }
+
+        /* Login dan pendaftaran: kontrol nyaman disentuh dan tidak keluar layar */
+        #view-login { padding: 14px !important; align-items: flex-start; }
+        #view-login > div { width: 100% !important; max-width: 440px; margin: 12px auto !important; border-radius: 18px !important; }
+        #view-login input, #view-login select, #view-login textarea,
+        #halaman-form-ppdb input, #halaman-form-ppdb select, #halaman-form-ppdb textarea {
+          width: 100%; max-width: 100%; min-height: 44px; font-size: 16px !important;
+        }
+        #view-login button, #halaman-form-ppdb button { min-height: 42px; }
+        #halaman-form-ppdb { padding-left: 12px !important; padding-right: 12px !important; }
+
+        /* Area setelah login: navigasi dan konten dibuat lebih lapang */
+        #view-app { min-height: 100vh; }
+        #view-app > header { padding: 12px 14px !important; }
+        #view-app > header h1, #view-app > header h2 { font-size: 16px !important; line-height: 1.3 !important; }
+        #view-app main { padding: 12px !important; }
+        #view-app aside { padding: 10px !important; }
+        #view-app aside nav { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 7px !important; }
+        #view-app .menu-portal {
+          display: flex !important; align-items: center; justify-content: flex-start;
+          min-height: 44px; padding: 9px 8px !important; gap: 7px !important;
+          border-radius: 10px; font-size: 12px !important; line-height: 1.3 !important;
+          white-space: normal; overflow-wrap: anywhere;
+        }
+        #view-app .menu-portal i { flex: 0 0 18px; width: 18px !important; text-align: center; }
+        #view-app .page-portal { min-width: 0; }
+        #view-app .page-portal h1, #view-app .page-portal h2 { font-size: clamp(18px, 5vw, 23px) !important; line-height: 1.3 !important; }
+        #view-app .page-portal h3 { font-size: 15px !important; line-height: 1.35 !important; }
+        #view-app .page-portal p, #view-app .page-portal label { line-height: 1.6; }
+        #view-app .page-portal input, #view-app .page-portal select,
+        #view-app .page-portal textarea { width: 100%; max-width: 100%; min-height: 42px; font-size: 16px !important; }
+        #view-app .page-portal button { max-width: 100%; white-space: normal; }
+        #view-app .page-portal table { min-width: 620px; }
+        #view-app .page-portal .overflow-x-auto,
+        #view-app .page-portal [class*="overflow-x"] { max-width: 100%; overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+        #view-app .page-portal .grid { grid-template-columns: minmax(0, 1fr) !important; }
+        #view-app .page-portal .flex { flex-wrap: wrap; }
+        #view-app .page-portal .grid > *, #view-app .page-portal .flex > * { max-width: 100%; }
+      }
+
+      @media (max-width: 390px) {
+        #view-public nav > .container { padding-left: 10px !important; padding-right: 10px !important; column-gap: 7px; }
+        #pubLogo { width: 38px !important; height: 38px !important; flex-basis: 38px; }
+        #pubNamaYayasan { font-size: 11px !important; }
+        #view-public nav > .container > div:first-child p { font-size: 9px !important; }
+        #btnMenuPortal { width: 40px !important; height: 40px !important; }
+        #view-app .menu-portal { font-size: 11px !important; padding: 8px 6px !important; }
+        #beranda .grid.grid-cols-2 { height: 250px !important; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #view-public *, #view-login *, #view-app * { scroll-behavior: auto !important; }
+      }
+    </style>
+
 </head>
 <body class="bg-slate-50 font-sans text-slate-800" onload="inisialisasiAwal()">
 
@@ -315,13 +626,20 @@
                 <button onclick="navigasiLayar('utama');window.location.href='#berita'" class="hover:text-indigo-600 transition uppercase tracking-wide">Berita</button>
                 <button onclick="navigasiLayar('spmb')" class="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-lg hover:bg-amber-200 transition uppercase tracking-wide border border-amber-200"><i class="fas fa-clipboard-check mr-1"></i>Info SPMB</button>
             </div>
-            <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto mt-3 md:mt-0">
-                <button onclick="document.getElementById('teksJudulLogin').innerText='Login Pegawai';document.getElementById('tipeLoginTemp').value='Pegawai';document.getElementById('areaDaftarGuru').classList.remove('hidden');gantiView('view-login');" class="w-full sm:w-auto justify-center bg-teal-600 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-teal-700 shadow-lg flex items-center gap-2">
-                    <i class="fas fa-users"></i> Portal Pegawai
+            <div class="relative ml-auto md:ml-0">
+                <button id="btnMenuPortal" type="button" onclick="toggleMenuPortal(event)" aria-label="Buka pilihan portal" aria-haspopup="true" aria-expanded="false" aria-controls="menuPilihanPortal" class="w-11 h-11 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition" title="Pilihan portal">
+                    <i class="fas fa-ellipsis-v text-lg"></i>
                 </button>
-                <button onclick="document.getElementById('teksJudulLogin').innerText='Login Admin';document.getElementById('tipeLoginTemp').value='Admin';document.getElementById('areaDaftarGuru').classList.add('hidden');gantiView('view-login');" class="w-full sm:w-auto justify-center bg-indigo-600 text-white px-4 py-3 rounded-xl font-bold text-sm hover:bg-indigo-700 shadow-lg flex items-center gap-2">
-                    <i class="fas fa-user-lock"></i> Portal Admin
-                </button>
+                <div id="menuPilihanPortal" class="hidden absolute right-0 top-full mt-2 w-56 rounded-xl border border-slate-200 bg-white p-2 shadow-xl z-[100]">
+                    <button type="button" onclick="bukaPortalPilihan('Admin')" class="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition">
+                        <span class="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center"><i class="fas fa-user-shield"></i></span>
+                        <span>Portal Admin</span>
+                    </button>
+                    <button type="button" onclick="bukaPortalPilihan('Pegawai')" class="w-full flex items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition">
+                        <span class="w-9 h-9 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center"><i class="fas fa-users"></i></span>
+                        <span>Portal Pegawai</span>
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -1624,6 +1942,50 @@ async function kirimPendaftaranGuru(event) {
         button.textContent = "Kirim Pendaftaran";
     }
 }
+
+function toggleMenuPortal(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById("menuPilihanPortal");
+    const tombol = document.getElementById("btnMenuPortal");
+    if (!menu || !tombol) return;
+    const akanDibuka = menu.classList.contains("hidden");
+    menu.classList.toggle("hidden", !akanDibuka);
+    tombol.setAttribute("aria-expanded", akanDibuka ? "true" : "false");
+}
+
+function tutupMenuPortal() {
+    const menu = document.getElementById("menuPilihanPortal");
+    const tombol = document.getElementById("btnMenuPortal");
+    if (menu) menu.classList.add("hidden");
+    if (tombol) tombol.setAttribute("aria-expanded", "false");
+}
+
+function bukaPortalPilihan(jenis) {
+    tutupMenuPortal();
+    const judul = document.getElementById("teksJudulLogin");
+    const tipe = document.getElementById("tipeLoginTemp");
+    const areaDaftar = document.getElementById("areaDaftarGuru");
+    if (jenis === "Pegawai") {
+        if (judul) judul.innerText = "Login Pegawai";
+        if (tipe) tipe.value = "Pegawai";
+        if (areaDaftar) areaDaftar.classList.remove("hidden");
+    } else {
+        if (judul) judul.innerText = "Login Admin";
+        if (tipe) tipe.value = "Admin";
+        if (areaDaftar) areaDaftar.classList.add("hidden");
+    }
+    gantiView("view-login");
+}
+
+// Tutup menu saat pengguna mengeklik area lain atau menekan tombol Escape.
+document.addEventListener("click", function(event) {
+    const menu = document.getElementById("menuPilihanPortal");
+    const tombol = document.getElementById("btnMenuPortal");
+    if (menu && tombol && !menu.contains(event.target) && !tombol.contains(event.target)) tutupMenuPortal();
+});
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") tutupMenuPortal();
+});
 
 function gantiView(idView) {
     ["view-public", "view-login", "view-app", "view-cetak-bukti"].forEach(function (id) {
