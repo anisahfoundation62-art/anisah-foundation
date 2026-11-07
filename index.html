@@ -1247,6 +1247,24 @@ let dataLembaga = [];
 let dataPegawai = [];
 let dataSiswa = [];
 let dataAbsensi = [];
+
+// Menjaga agar data menu dimuat satu kali per sesi, bukan berulang setiap navigasi.
+let anisahDataLoadState = { lembaga: null, pegawai: null, siswa: null };
+function muatDataMenuSekali(menu, paksaMuatUlang = false) {
+    const pemuat = {
+        lembaga: muatDataLembaga,
+        pegawai: muatDataPegawai,
+        siswa: muatDataSiswa
+    }[menu];
+    if (!pemuat) return Promise.resolve();
+    if (paksaMuatUlang) anisahDataLoadState[menu] = null;
+    if (anisahDataLoadState[menu]) return anisahDataLoadState[menu];
+    anisahDataLoadState[menu] = Promise.resolve().then(pemuat).catch(function (error) {
+        anisahDataLoadState[menu] = null;
+        throw error;
+    });
+    return anisahDataLoadState[menu];
+}
 let dataPengaturan = {};
 let grafikKehadiran = null;
 
@@ -1709,18 +1727,32 @@ async function prosesLogin(event) {
         if (dashKode) dashKode.textContent = sesiAnisah.kode_lembaga || "—";
         if (dashLembaga) dashLembaga.textContent = sesiAnisah.nama_lembaga || sesiAnisah.kode_lembaga || "—";
 
+        // Mulai sesi baru: kosongkan cache pemuatan menu agar data selalu sesuai akun aktif.
+        anisahDataLoadState = { lembaga: null, pegawai: null, siswa: null };
+
         terapkanHakMenu();
         gantiView("view-app");
-        await muatSemuaData();
-        // Muat catatan absensi sejak login agar statistik dashboard tidak tetap 0.
-        await muatAbsensi();
-        perbaruiStatistik();
         bukaMenu("dashboard");
         document.getElementById("kartuBarcodeGuru")?.classList.add("hidden");
         if (sesiAnisah.level === "Admin_Lembaga") iniciarBarcodeLembaga();
 
+        // Jangan tahan pengguna di layar login sambil menunggu semua sheet dibaca.
+        // Data besar dimuat di belakang layar hanya untuk akun admin; akun Pegawai
+        // memuat data saat menu yang bersangkutan benar-benar dibuka.
         document.getElementById("formLogin").reset();
         tampilPesan("Login berhasil", "Selamat datang di Portal Anisah Foundation.", "success");
+
+        if (["Admin_Pusat", "Admin_Lembaga"].includes(sesiAnisah.level)) {
+            Promise.allSettled([
+                muatSemuaData(),
+                muatAbsensi()
+            ]).then(function () {
+                perbaruiStatistik();
+            });
+        } else {
+            // Dashboard Pegawai tidak perlu menunggu tabel lembaga/pegawai/siswa.
+            perbaruiStatistik();
+        }
     } catch (error) {
         tampilPesan("Login gagal", error.message || "Terjadi kesalahan saat login.", "error");
     } finally {
@@ -1968,7 +2000,13 @@ function bukaMenu(menu) {
     const tombolAktif = document.querySelector('[data-menu="' + menu + '"]');
     if (tombolAktif) tombolAktif.classList.add("bg-indigo-100", "text-indigo-900");
 
-    if (menu === "absensi") {
+    if (menu === "lembaga") {
+        muatDataMenuSekali("lembaga");
+    } else if (menu === "pegawai") {
+        muatDataMenuSekali("pegawai");
+    } else if (menu === "siswa") {
+        muatDataMenuSekali("siswa");
+    } else if (menu === "absensi") {
         muatAbsensi();
     } else if (menu === "grafik") {
         muatAbsensi().then(renderGrafikKehadiran);
@@ -1980,11 +2018,14 @@ function bukaMenu(menu) {
 }
 
 async function muatSemuaData() {
-    await Promise.allSettled([
-        muatDataLembaga(),
-        muatDataPegawai(),
-        muatDataSiswa()
-    ]);
+    const tugas = [
+        muatDataMenuSekali("pegawai"),
+        muatDataMenuSekali("siswa")
+    ];
+    if (sesiAnisah.level === "Admin_Pusat") {
+        tugas.unshift(muatDataMenuSekali("lembaga"));
+    }
+    await Promise.allSettled(tugas);
     perbaruiStatistik();
 }
 
@@ -2066,8 +2107,11 @@ function renderTabelLembaga() {
 
 async function muatDataPegawai() {
     try {
-        await muatPendaftaranGuruDiDataPegawai();
-        dataPegawai = await ambilData("pegawai");
+        const hasilPegawai = await Promise.all([
+            ambilData("pegawai"),
+            muatPendaftaranGuruDiDataPegawai()
+        ]);
+        dataPegawai = hasilPegawai[0];
         // Abaikan baris judul spreadsheet jika ikut dikirim oleh backend.
         // Filter ini juga berlaku untuk tabel, pilihan absensi, dan statistik pegawai.
         dataPegawai = (Array.isArray(dataPegawai) ? dataPegawai : []).filter(function (b) {
