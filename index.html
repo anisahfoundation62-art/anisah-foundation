@@ -898,9 +898,6 @@
                 <div class="mb-6">
                     <h2 class="text-2xl font-black">Absensi Pegawai</h2>
                     <p class="text-sm text-slate-500 mt-1">Pencatatan kehadiran dan riwayat absensi.</p>
-                    <button type="button" id="btnRefreshAbsensiUtama" onclick="refreshAbsensiManual()" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-sky-100 px-5 py-3 font-bold text-sky-800 hover:bg-sky-200 active:scale-[.98]">
-                        <i class="fas fa-sync-alt" aria-hidden="true"></i> Refresh Absensi
-                    </button>
                 </div>
                 <div id="panelBarcodeLembaga" class="hidden bg-white border rounded-2xl p-6 mb-6">
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -2729,23 +2726,6 @@ async function simpanAbsensi(event) {
     }
 }
 
-async function refreshAbsensiManual() {
-    const tombol = document.getElementById("btnRefreshAbsensiUtama");
-    if (tombol) {
-        tombol.disabled = true;
-        tombol.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Memuat absensi...';
-    }
-    try {
-        await muatAbsensi();
-        if (typeof perbaruiStatistik === "function") perbaruiStatistik();
-    } finally {
-        if (tombol) {
-            tombol.disabled = false;
-            tombol.innerHTML = '<i class="fas fa-sync-alt" aria-hidden="true"></i> Refresh Absensi';
-        }
-    }
-}
-
 async function muatAbsensi() {
     try {
         const hasil = await apiPost({
@@ -4112,10 +4092,71 @@ async function mulaiScanAbsensiGuru() {
 
           if (status) status.textContent = "Memvalidasi QR Code...";
 
-          const hasil = await apiPost({
+          let hasil = await apiPost({
             action: "barcode_absensi_scan",
             token_qr: teksQR
           });
+
+          // Jika server mendeteksi scan masuk setelah 07.10 WIB, minta alasan
+          // dan penjelasan sebelum mengirim ulang scan yang sama. Server belum
+          // menyimpan absensi pada tahap ini, sehingga tidak membuat data ganda.
+          if (hasil && hasil.status === "perlu_alasan" && hasil.mode === "masuk") {
+            const pilihanAlasan = [
+              "Kendala kendaraan atau perjalanan",
+              "Kecelakaan atau musibah di jalan",
+              "Urusan keluarga",
+              "Kondisi kesehatan",
+              "Tugas atau kegiatan kedinasan",
+              "Keperluan pribadi",
+              "Lainnya"
+            ];
+            let isian = null;
+            if (window.Swal) {
+              const opsi = pilihanAlasan.map(x => `<option value="${escapeHTML(x)}">${escapeHTML(x)}</option>`).join("");
+              const dialog = await Swal.fire({
+                title: "Konfirmasi Keterlambatan",
+                html: `
+                  <p style="text-align:left;margin:0 0 12px;color:#475569">${escapeHTML(hasil.pesan || "Anda terlambat. Silakan isi alasan dan penjelasan.")}</p>
+                  <label for="alasanTerlambatQR" style="display:block;text-align:left;font-weight:700;margin:10px 0 6px">Alasan keterlambatan <span style="color:#dc2626">*</span></label>
+                  <select id="alasanTerlambatQR" class="swal2-select" style="display:flex;width:100%;margin:0 0 12px"><option value="">-- Pilih alasan --</option>${opsi}</select>
+                  <label for="keteranganTerlambatQR" style="display:block;text-align:left;font-weight:700;margin:8px 0 6px">Keterangan / penjelasan <span style="color:#dc2626">*</span></label>
+                  <textarea id="keteranganTerlambatQR" class="swal2-textarea" maxlength="1000" placeholder="Jelaskan penyebab keterlambatan Anda..." style="display:flex;width:100%;margin:0;min-height:110px"></textarea>
+                `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: "Kirim Absensi",
+                cancelButtonText: "Batal",
+                confirmButtonColor: "#047857",
+                preConfirm: () => {
+                  const alasan = document.getElementById("alasanTerlambatQR")?.value.trim() || "";
+                  const keterangan = document.getElementById("keteranganTerlambatQR")?.value.trim() || "";
+                  if (!alasan) { Swal.showValidationMessage("Silakan pilih alasan keterlambatan."); return false; }
+                  if (!keterangan) { Swal.showValidationMessage("Keterangan keterlambatan wajib diisi."); return false; }
+                  if (keterangan.length > 1000) { Swal.showValidationMessage("Keterangan maksimal 1.000 karakter."); return false; }
+                  return { alasan, keterangan };
+                }
+              });
+              if (dialog.isConfirmed) isian = dialog.value;
+            } else {
+              const alasan = prompt("Alasan keterlambatan:\n" + pilihanAlasan.map((x,i)=>(i+1)+". "+x).join("\n") + "\nMasukkan nomor pilihan (1-7):");
+              const nomor = Number(alasan);
+              if (Number.isInteger(nomor) && nomor >= 1 && nomor <= pilihanAlasan.length) {
+                const keterangan = prompt("Jelaskan penyebab keterlambatan Anda:");
+                if (keterangan && keterangan.trim()) isian = { alasan: pilihanAlasan[nomor-1], keterangan: keterangan.trim() };
+              }
+            }
+            if (!isian) {
+              if (status) status.textContent = "Absensi belum disimpan. Silakan mulai scan kembali dan isi alasan serta keterangan keterlambatan.";
+              return;
+            }
+            if (status) status.textContent = "Menyimpan absensi beserta alasan keterlambatan...";
+            hasil = await apiPost({
+              action: "barcode_absensi_scan",
+              token_qr: teksQR,
+              alasan_terlambat: isian.alasan,
+              keterangan_terlambat: isian.keterangan
+            });
+          }
 
           if (!hasil || hasil.status !== "sukses") {
             throw new Error(hasil?.pesan || "QR Code tidak valid.");
