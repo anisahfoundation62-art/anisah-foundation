@@ -898,7 +898,7 @@
                 <div class="mb-6">
                     <h2 class="text-2xl font-black">Absensi Pegawai</h2>
                     <p class="text-sm text-slate-500 mt-1">Pencatatan kehadiran dan riwayat absensi.</p>
-                    <button type="button" id="btnRefreshAbsensi" onclick="muatAbsensi()" class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-sky-100 hover:bg-sky-200 text-sky-800 px-5 py-3 font-bold transition">
+                    <button type="button" id="btnRefreshAbsensi" type="button" onclick="muatAbsensi()" class="mt-5 inline-flex items-center gap-2 rounded-2xl bg-sky-100 hover:bg-sky-200 text-sky-800 px-5 py-3 font-bold transition">
                         <i class="fas fa-sync-alt" aria-hidden="true"></i>
                         <span>Refresh Absensi</span>
                     </button>
@@ -2731,23 +2731,57 @@ async function simpanAbsensi(event) {
 }
 
 async function muatAbsensi() {
+    const target = document.getElementById("kontenRiwayatAbsensi");
+    const tombolRefresh = document.getElementById("btnRefreshAbsensi");
+    const tombolFilter = document.querySelector('#page-absensi button[onclick="muatAbsensi()"]:not(#btnRefreshAbsensi)');
+    const tanggalInput = document.getElementById("filterAbsTanggal");
+
+    // Jika tanggal belum terisi, gunakan tanggal hari ini menurut zona waktu lokal perangkat.
+    if (tanggalInput && !tanggalInput.value) {
+        const sekarang = new Date();
+        const lokal = new Date(sekarang.getTime() - sekarang.getTimezoneOffset() * 60000);
+        tanggalInput.value = lokal.toISOString().slice(0, 10);
+    }
+
+    const tombol = [tombolRefresh, tombolFilter].filter(Boolean);
+    const labelLama = tombol.map(b => b.innerHTML);
+    tombol.forEach(b => {
+        b.disabled = true;
+        b.classList.add("opacity-60", "cursor-wait");
+    });
+    if (tombolRefresh) {
+        tombolRefresh.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i><span>Memuat absensi...</span>';
+    }
+    if (target) target.innerHTML = '<p class="text-slate-500 p-3"><i class="fas fa-spinner fa-spin mr-2"></i>Memperbarui riwayat absensi...</p>';
+
     try {
         const hasil = await apiPost({
             action: "absensi_list",
-            tanggal: document.getElementById("filterAbsTanggal").value
+            tanggal: tanggalInput ? tanggalInput.value : ""
         });
 
-        if (hasil.status !== "sukses") {
-            throw new Error(hasil.pesan || "Riwayat absensi gagal dimuat.");
+        if (!hasil || hasil.status !== "sukses") {
+            throw new Error((hasil && hasil.pesan) || "Riwayat absensi gagal dimuat.");
         }
 
         dataAbsensi = Array.isArray(hasil.data) ? hasil.data : [];
         renderRiwayatAbsensi();
         return dataAbsensi;
     } catch (error) {
-        document.getElementById("kontenRiwayatAbsensi").innerHTML =
-            '<p class="text-red-600">' + escapeHTML(error.message) + '</p>';
+        console.error("Refresh absensi gagal:", error);
+        if (target) target.innerHTML =
+            '<div class="rounded-xl border border-red-200 bg-red-50 p-3 text-red-700"><b>Riwayat belum berhasil diperbarui.</b><p class="mt-1">' + escapeHTML(error.message || "Periksa koneksi dan sesi login.") + '</p></div>';
         return [];
+    } finally {
+        tombol.forEach((b, i) => {
+            b.disabled = false;
+            b.classList.remove("opacity-60", "cursor-wait");
+            if (b === tombolRefresh) {
+                b.innerHTML = '<i class="fas fa-sync-alt" aria-hidden="true"></i><span>Refresh Absensi</span>';
+            } else {
+                b.innerHTML = labelLama[i];
+            }
+        });
     }
 }
     let dataPengajuanIzinGrafik = [];
