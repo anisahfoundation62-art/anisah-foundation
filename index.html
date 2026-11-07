@@ -898,6 +898,9 @@
                 <div class="mb-6">
                     <h2 class="text-2xl font-black">Absensi Pegawai</h2>
                     <p class="text-sm text-slate-500 mt-1">Pencatatan kehadiran dan riwayat absensi.</p>
+                    <button type="button" id="btnRefreshAbsensiUtama" onclick="refreshAbsensiManual()" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-sky-100 px-5 py-3 font-bold text-sky-800 hover:bg-sky-200 active:scale-[.98]">
+                        <i class="fas fa-sync-alt" aria-hidden="true"></i> Refresh Absensi
+                    </button>
                 </div>
                 <div id="panelBarcodeLembaga" class="hidden bg-white border rounded-2xl p-6 mb-6">
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -2723,6 +2726,23 @@ async function simpanAbsensi(event) {
     } finally {
         tombol.disabled = false;
         tombol.innerHTML = teksAsli;
+    }
+}
+
+async function refreshAbsensiManual() {
+    const tombol = document.getElementById("btnRefreshAbsensiUtama");
+    if (tombol) {
+        tombol.disabled = true;
+        tombol.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Memuat absensi...';
+    }
+    try {
+        await muatAbsensi();
+        if (typeof perbaruiStatistik === "function") perbaruiStatistik();
+    } finally {
+        if (tombol) {
+            tombol.disabled = false;
+            tombol.innerHTML = '<i class="fas fa-sync-alt" aria-hidden="true"></i> Refresh Absensi';
+        }
     }
 }
 
