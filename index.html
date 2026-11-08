@@ -2325,21 +2325,88 @@ function akhiriVerifikasiAbsensiAdmin(){
 
 async function catatAbsensiMandiriAdmin(){
     if (!tiketAbsensiMandiriAdmin || !peranAdminLembagaAktif()) {
-        document.getElementById("statusVerifikasiPegawaiAdmin").textContent = "Silakan verifikasi akun Pegawai terlebih dahulu."; return;
+        document.getElementById("statusVerifikasiPegawaiAdmin").textContent = "Silakan verifikasi akun Pegawai terlebih dahulu.";
+        return;
     }
     const btn = document.getElementById("btnCatatAbsensiMandiriAdmin");
     const statusEl = document.getElementById("statusVerifikasiPegawaiAdmin");
-    btn.disabled = true; btn.textContent = "Menyimpan absensi...";
+    btn.disabled = true;
+    btn.textContent = "Memeriksa absensi...";
     try {
-        const hasil = await apiPost({action:"absensi_admin_self_simpan", tiket_absensi:tiketAbsensiMandiriAdmin});
-        const pesanBerhasil = (hasil.pesan || "Absensi berhasil dicatat.") + " Verifikasi diakhiri demi keamanan. Untuk absensi berikutnya, verifikasi kembali.";
+        let hasil = await apiPost({
+            action: "absensi_admin_self_simpan",
+            tiket_absensi: tiketAbsensiMandiriAdmin
+        });
+        if (hasil && hasil.status === "perlu_alasan" && hasil.mode === "masuk") {
+            const pilihanAlasan = [
+                "Kendala kendaraan atau perjalanan",
+                "Kecelakaan atau musibah di jalan",
+                "Urusan keluarga",
+                "Kondisi kesehatan",
+                "Tugas atau kegiatan kedinasan",
+                "Keperluan pribadi",
+                "Lainnya"
+            ];
+            let isian = null;
+            if (window.Swal) {
+                const opsi = pilihanAlasan.map(x => `<option value="${escapeHTML(x)}">${escapeHTML(x)}</option>`).join("");
+                const dialog = await Swal.fire({
+                    title: "Konfirmasi Keterlambatan",
+                    html: `
+                        <p style="text-align:left;margin:0 0 12px;color:#475569">${escapeHTML(hasil.pesan || "Anda terlambat. Silakan isi alasan dan keterangan.")}</p>
+                        <label for="alasanTerlambatAdminMandiri" style="display:block;text-align:left;font-weight:700;margin:10px 0 6px">Alasan keterlambatan <span style="color:#dc2626">*</span></label>
+                        <select id="alasanTerlambatAdminMandiri" class="swal2-select" style="display:flex;width:100%;margin:0 0 12px"><option value="">-- Pilih alasan --</option>${opsi}</select>
+                        <label for="keteranganTerlambatAdminMandiri" style="display:block;text-align:left;font-weight:700;margin:8px 0 6px">Keterangan / penjelasan <span style="color:#dc2626">*</span></label>
+                        <textarea id="keteranganTerlambatAdminMandiri" class="swal2-textarea" maxlength="1000" placeholder="Jelaskan penyebab keterlambatan Anda..." style="display:flex;width:100%;margin:0;min-height:110px"></textarea>
+                    `,
+                    focusConfirm: false,
+                    showCancelButton: true,
+                    confirmButtonText: "Kirim Absensi",
+                    cancelButtonText: "Batal",
+                    confirmButtonColor: "#047857",
+                    preConfirm: () => {
+                        const alasan = document.getElementById("alasanTerlambatAdminMandiri")?.value.trim() || "";
+                        const keterangan = document.getElementById("keteranganTerlambatAdminMandiri")?.value.trim() || "";
+                        if (!alasan) { Swal.showValidationMessage("Silakan pilih alasan keterlambatan."); return false; }
+                        if (!keterangan) { Swal.showValidationMessage("Keterangan keterlambatan wajib diisi."); return false; }
+                        return { alasan, keterangan };
+                    }
+                });
+                if (dialog.isConfirmed) isian = dialog.value;
+            } else {
+                const pilihan = prompt("Alasan keterlambatan:\n" + pilihanAlasan.map((x,i)=>(i+1)+". "+x).join("\n") + "\nMasukkan nomor pilihan (1-7):");
+                const nomor = Number(pilihan);
+                if (Number.isInteger(nomor) && nomor >= 1 && nomor <= pilihanAlasan.length) {
+                    const keterangan = prompt("Jelaskan penyebab keterlambatan Anda:");
+                    if (keterangan && keterangan.trim()) isian = { alasan: pilihanAlasan[nomor-1], keterangan: keterangan.trim() };
+                }
+            }
+            if (!isian) {
+                statusEl.textContent = "Absensi belum disimpan. Verifikasi tetap aktif; tekan Catat Absensi lagi untuk mencoba kembali.";
+                return;
+            }
+            btn.textContent = "Menyimpan alasan dan absensi...";
+            hasil = await apiPost({
+                action: "absensi_admin_self_simpan",
+                tiket_absensi: tiketAbsensiMandiriAdmin,
+                alasan_terlambat: isian.alasan,
+                keterangan_terlambat: isian.keterangan
+            });
+        }
+        if (!hasil || hasil.status !== "sukses") throw new Error((hasil && hasil.pesan) || "Absensi belum berhasil disimpan.");
         if (typeof muatAbsensi === "function") await muatAbsensi();
+        const pesanBerhasil = (hasil.pesan || "Absensi berhasil dicatat.") +
+            (hasil.waktu ? " Pukul " + hasil.waktu + " WIB." : "") +
+            " Verifikasi diakhiri demi keamanan. Untuk absensi berikutnya, verifikasi kembali.";
         akhiriVerifikasiAbsensiAdmin();
         statusEl.textContent = pesanBerhasil;
     } catch (e) {
         statusEl.textContent = e.message || "Absensi gagal disimpan.";
         if (/kedaluwarsa|verifikasi ulang/i.test(statusEl.textContent)) akhiriVerifikasiAbsensiAdmin();
-    } finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-fingerprint mr-2"></i>Catat Absensi Masuk / Pulang'; }
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-fingerprint mr-2"></i>Catat Absensi Masuk / Pulang';
+    }
 }
 
 async function iniciarBarcodeLembaga(){
