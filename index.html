@@ -5135,17 +5135,38 @@ async function mulaiScanAbsensiGuru() {
             const judulNotifikasi = hasil.mode === "pulang"
               ? "Absensi Pulang Berhasil"
               : "Absensi Masuk Berhasil";
-            const rincianStatus = [
-              hasil.status_masuk ? "Status masuk: " + hasil.status_masuk : "",
-              hasil.status_pulang ? "Status pulang: " + hasil.status_pulang : "",
-              hasil.waktu ? "Waktu tercatat: " + hasil.waktu + " WIB" : ""
-            ].filter(Boolean).join("\\n");
+            /* Rincian absensi disusun sebagai baris terstruktur.
+               Sebelumnya penanda baris baru tidak terbentuk sehingga seluruh
+               rincian menempel jadi satu paragraf di dalam dialog. */
+            const barisRincianAbsensi = [
+              hasil.status_masuk ? ["Status masuk", hasil.status_masuk] : null,
+              hasil.status_pulang ? ["Status pulang", hasil.status_pulang] : null,
+              hasil.waktu ? ["Waktu tercatat", hasil.waktu + " WIB"] : null
+            ].filter(Boolean);
+
+            const htmlRincianAbsensi = barisRincianAbsensi.length
+              ? '<div style="margin:15px 0 0;border:1px solid #d7e6f5;border-radius:12px;overflow:hidden;background:#f7fbff;text-align:left">' +
+                barisRincianAbsensi.map(function (baris, i) {
+                  return '<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 14px;font-size:14px' +
+                    (i ? ';border-top:1px solid #e5eefa' : '') + '">' +
+                    '<span style="color:#5b7089">' + escapeHTML(baris[0]) + '</span>' +
+                    '<strong style="color:#203b60;text-align:right;font-weight:800">' + escapeHTML(baris[1]) + '</strong>' +
+                    '</div>';
+                }).join('') +
+                '</div>'
+              : '';
 
             await Swal.fire({
               icon: "success",
               title: judulNotifikasi,
-              text: [hasil.pesan || "Kehadiran Anda sudah berhasil tercatat.", rincianStatus]
-                .filter(Boolean).join("\\n"),
+              html:
+                '<p style="margin:0;font-size:14px;line-height:1.65;color:#475569">' +
+                  escapeHTML(hasil.pesan || "Kehadiran Anda sudah berhasil tercatat.") +
+                '</p>' +
+                htmlRincianAbsensi +
+                '<p style="margin:13px 0 0;font-size:12px;line-height:1.6;color:#8595a8">' +
+                  'Status yang tersimpan di riwayat berasal dari server.' +
+                '</p>',
               confirmButtonText: "Mengerti",
               confirmButtonColor: "#047857"
             });
