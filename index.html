@@ -680,6 +680,193 @@
       }
     </style>
 
+
+    <!-- ==========================================================
+         TAMBAHAN 1 — PRATINJAU TAUTAN & SEO
+         Menambah tag untuk WhatsApp/Facebook/X + data terstruktur Google.
+         Tidak menyentuh JavaScript, form, portal, atau API.
+         ========================================================== -->
+    <meta name="theme-color" content="#203b60">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Yayasan Anisah Foundation">
+    <meta property="og:locale" content="id_ID">
+    <meta property="og:title" content="Yayasan Anisah Foundation | Pendidikan di Pasuruan">
+    <meta property="og:description" content="Pusat pendidikan terpadu: PTPA Anisah, KB An-Nisa', TK Muslimat 83, SD &amp; SMP Islam Az Zahra, TPQ &amp; Madin As Syakur, BLKK Anisah. Pendaftaran murid baru dibuka.">
+    <meta property="og:url" content="https://anisahfoundation.com/">
+    <meta property="og:image" content="https://anisahfoundation.com/og-cover.jpg">
+    <meta property="og:image:secure_url" content="https://anisahfoundation.com/og-cover.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Yayasan Anisah Foundation — Berilmu, Berkarakter, Berprestasi">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Yayasan Anisah Foundation | Pendidikan di Pasuruan">
+    <meta name="twitter:description" content="Pusat pendidikan terpadu di Kabupaten Pasuruan. Informasi unit lembaga, berita, dan pendaftaran murid baru.">
+    <meta name="twitter:image" content="https://anisahfoundation.com/og-cover.jpg">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "EducationalOrganization",
+      "name": "Yayasan Anisah Foundation",
+      "alternateName": "Anisah Foundation",
+      "url": "https://anisahfoundation.com/",
+      "logo": "https://anisahfoundation.com/favicon.png",
+      "image": "https://anisahfoundation.com/og-cover.jpg",
+      "description": "Yayasan pendidikan Islam terpadu di Kabupaten Pasuruan yang menaungi PTPA Anisah, KB An-Nisa', TK Muslimat 83 Anisah, SD Islam Az Zahra, SMP Islam Az Zahra, TPQ As Syakur, Madin As Syakur, BLKK Anisah, dan PP Roudhlotul Ma'ruf.",
+      "slogan": "Berilmu, Berkarakter, Berprestasi",
+      "email": "Anisahfoundation62@gmail.com",
+      "telephone": "+62-852-3652-6764",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Jl. Raya Bangil - Pandaan Km 01, Ds. Sidowayah, Kec. Beji",
+        "addressLocality": "Kabupaten Pasuruan",
+        "addressRegion": "Jawa Timur",
+        "postalCode": "67154",
+        "addressCountry": "ID"
+      },
+      "areaServed": {
+        "@type": "AdministrativeArea",
+        "name": "Kabupaten Pasuruan"
+      }
+    }
+    </script>
+
+    <!-- ==========================================================
+         TAMBAHAN 2 — PERBAIKAN TAMPILAN DI HP (CSS SAJA)
+
+         Hanya aturan tampilan untuk HALAMAN DEPAN.
+         Tidak mengubah ID, class, fungsi JavaScript, URL Apps Script,
+         form pendaftaran, portal admin, portal pegawai, absensi,
+         barcode/QR, maupun grafik.
+
+         Diletakkan paling akhir agar menang urutan cascade terhadap
+         blok-blok sebelumnya yang memakai !important.
+         ========================================================== -->
+    <style id="anisah-perbaikan-hp-final">
+
+        /* ---------- 1. BAR KONTAK ATAS: kembali jadi satu baris ---------- */
+        @media (max-width: 767px) {
+            #view-public > div.bg-indigo-950 {
+                padding: 5px 10px !important;
+            }
+            #view-public > div.bg-indigo-950 > .container {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 2px 14px !important;
+            }
+            #view-public > div.bg-indigo-950 > .container > div:first-child {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 2px 14px !important;
+                width: auto !important;
+            }
+            #view-public > div.bg-indigo-950 > .container > div:first-child > span {
+                display: inline-flex !important;
+                align-items: center !important;
+                width: auto !important;
+                min-width: 0 !important;
+                font-size: 10.5px !important;
+                line-height: 1.35 !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            #view-public > div.bg-indigo-950 > .container > div:first-child > span i {
+                margin: 0 4px 0 0 !important;
+                flex: 0 0 auto !important;
+            }
+            /* Alamat disembunyikan di HP selama isinya masih "Alamat yayasan belum diisi" */
+            #view-public > div.bg-indigo-950 > .container > div:first-child > span.hidden {
+                display: none !important;
+            }
+        }
+
+        /* ---------- 2. AREA HERO: jarak dan huruf lebih seimbang ---------- */
+        @media (max-width: 767px) {
+            #beranda {
+                padding: 26px 16px 30px !important;
+            }
+            #beranda .container {
+                gap: 22px !important;
+            }
+            #beranda h2 {
+                font-size: clamp(20px, 5.6vw, 26px) !important;
+                line-height: 1.24 !important;
+                letter-spacing: -.02em !important;
+            }
+            #beranda > div > div:first-child > p {
+                font-size: 13.5px !important;
+                line-height: 1.7 !important;
+            }
+            #beranda > div > div:first-child > span {
+                padding: 5px 11px !important;
+                font-size: 10px !important;
+            }
+            #beranda button {
+                width: 100%;
+                justify-content: center;
+                font-size: 13px !important;
+                padding: 13px 18px !important;
+            }
+        }
+
+        /* ---------- 3. KARTU FOTO: HP jadi SATU KOLOM ----------
+           Inilah perbaikan utamanya. Sebelumnya grid tetap dipaksa
+           2 kolom selebar +-156px, dengan tinggi dipaksa 340px lalu
+           290px lalu 250px. Akibatnya judul kartu bertumpuk 4-5 baris
+           dan meluber keluar kotak. */
+        @media (max-width: 767px) {
+            #beranda .grid.grid-cols-2 {
+                grid-template-columns: 1fr !important;
+                grid-template-rows: none !important;
+                grid-auto-rows: 150px !important;
+                height: auto !important;
+                gap: 10px !important;
+            }
+            #beranda .grid.grid-cols-2 > div {
+                grid-column: auto !important;
+                border-radius: 14px !important;
+            }
+            /* Kartu pertama tetap jadi foto besar (setara dua baris) */
+            #beranda .grid.grid-cols-2 > div:first-child {
+                grid-row: span 2 !important;
+            }
+            /* Teks di dalam kartu ikut ukuran layar */
+            #beranda .grid.grid-cols-2 > div > div:last-child {
+                padding: 12px !important;
+                gap: 8px !important;
+            }
+            #beranda .grid.grid-cols-2 h3 {
+                font-size: 15px !important;
+                line-height: 1.3 !important;
+            }
+            #beranda .grid.grid-cols-2 > div:first-child h3 {
+                font-size: 17px !important;
+                line-height: 1.25 !important;
+            }
+            #beranda .grid.grid-cols-2 > div:first-child > div:last-child > span {
+                font-size: 9px !important;
+                padding: 3px 9px !important;
+                margin-bottom: 6px !important;
+            }
+            /* Tombol panah di kartu ketiga tidak lagi menekan judul */
+            #beranda .grid.grid-cols-2 > div > div:last-child > div {
+                width: 26px !important;
+                height: 26px !important;
+                flex: 0 0 26px !important;
+            }
+        }
+
+    </style>
+
 </head>
 <body class="bg-slate-50 font-sans text-slate-800" onload="inisialisasiAwal()">
 
