@@ -4548,18 +4548,51 @@ async function muatPermintaanLupaPassword() {
         target.innerHTML = '<p class="text-slate-500">Tidak ada permintaan lupa password yang menunggu pemeriksaan.</p>';
         return;
       }
-      target.innerHTML = `<table class="min-w-full text-sm"><thead><tr class="bg-slate-100 text-left"><th class="p-3">Username</th><th class="p-3">WhatsApp</th><th class="p-3">Waktu</th><th class="p-3">Status</th><th class="p-3">Aksi</th></tr></thead><tbody>${daftar.map(d => `<tr class="border-t"><td class="p-3">${escapeHTML(d.username)}</td><td class="p-3">${escapeHTML(d.wa)}</td><td class="p-3">${escapeHTML(d.waktu)}</td><td class="p-3">${escapeHTML(d.status)}</td><td class="p-3"><button onclick="tandaiLupaPassword(${Number(d.row)})" class="bg-emerald-700 text-white px-3 py-2 rounded-lg font-bold">Tandai ditangani</button></td></tr>`).join("")}</tbody></table>`;
+      target.innerHTML = `<table class="min-w-full text-sm"><thead><tr class="bg-slate-100 text-left"><th class="p-3">Username</th><th class="p-3">WhatsApp</th><th class="p-3">Waktu</th><th class="p-3">Status</th><th class="p-3">Aksi</th></tr></thead><tbody>${daftar.map(d => `<tr class="border-t"><td class="p-3">${escapeHTML(d.username)}</td><td class="p-3">${escapeHTML(d.wa)}</td><td class="p-3">${escapeHTML(d.waktu)}</td><td class="p-3">${escapeHTML(d.status)}</td><td class="p-3"><button onclick="resetPasswordLupaPassword(${Number(d.row)})" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 rounded-lg font-bold">Reset Password</button></td></tr>`).join("")}</tbody></table>`;
     } catch (error) {
       target.innerHTML = '<p class="text-red-600">' + escapeHTML(error.message) + '</p>';
     }
 }
-async function tandaiLupaPassword(row) {
+
+async function resetPasswordLupaPassword(row) {
+  let passwordBaru = "";
+  if (window.Swal) {
+    const dialog = await Swal.fire({
+      title: "Reset Password Pegawai",
+      text: "Masukkan password sementara minimal 8 karakter. Pastikan identitas dan nomor WhatsApp sudah diverifikasi.",
+      input: "password",
+      inputPlaceholder: "Password sementara",
+      inputAttributes: { minlength: 8, maxlength: 100, autocomplete: "new-password" },
+      showCancelButton: true,
+      confirmButtonText: "Reset Password",
+      cancelButtonText: "Batal",
+      inputValidator: value => !value || value.length < 8 ? "Password minimal 8 karakter." : undefined
+    });
+    if (!dialog.isConfirmed) return;
+    passwordBaru = dialog.value;
+  } else {
+    passwordBaru = prompt("Masukkan password sementara (minimal 8 karakter):") || "";
+    if (passwordBaru.length < 8) {
+      await tampilPesan("Password tidak valid", "Password sementara minimal 8 karakter.", "warning");
+      return;
+    }
+    if (!confirm("Lanjutkan reset password untuk permintaan ini?")) return;
+  }
+
   try {
-    const hasil = await apiPost({ action: "lupa_password_tandai", row: row });
-    if (hasil.status !== "sukses") throw new Error(hasil.pesan || "Tidak dapat memperbarui status.");
-    await tampilPesan("Berhasil", "Permintaan ditandai sudah ditangani. Lakukan reset password melalui prosedur admin yang aman.", "success");
+    const hasil = await apiPost({
+      action: "lupa_password_reset",
+      row: row,
+      passwordBaru: passwordBaru
+    });
+    if (hasil.status !== "sukses") throw new Error(hasil.pesan || "Password gagal direset.");
+    passwordBaru = "";
+    await tampilPesan("Berhasil", hasil.pesan || "Password berhasil direset.", "success");
     await muatPermintaanLupaPassword();
-  } catch (e) { await tampilPesan("Gagal", e.message, "error"); }
+  } catch (e) {
+    passwordBaru = "";
+    await tampilPesan("Gagal", e.message, "error");
+  }
 }
 
 async function prosesPersetujuanGuru(row, keputusan) {
