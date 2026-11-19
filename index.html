@@ -3788,7 +3788,7 @@ async function siapkanLaporanAbsensiBulanan() {
 
     try {
         if (!Array.isArray(dataLembaga) || !dataLembaga.length) {
-            dataLembaga = await ambilData("lembaga");
+            await muatDataMenuSekali("lembaga");
         }
 
         const lembaga = (Array.isArray(dataLembaga) ? dataLembaga : [])
@@ -3844,7 +3844,7 @@ async function muatLaporanAbsensiBulanan() {
     }
 
     target.innerHTML =
-        '<p class="text-slate-500">Sedang memuat data absensi...</p>';
+        '<p class="text-slate-500">Sedang memuat data absensi dan izin...</p>';
 
     try {
         const bulan = Number(document.getElementById("laporanBulan").value);
@@ -3853,81 +3853,55 @@ async function muatLaporanAbsensiBulanan() {
             document.getElementById("laporanLembaga").value || ""
         ).trim();
 
-        // Tanpa filter tanggal agar laporan mengambil seluruh riwayat.
-        const hasil = await apiPost({ action: "absensi_list" });
-
-        if (hasil.status !== "sukses") {
-            throw new Error(hasil.pesan || "Data absensi gagal dimuat.");
-        }
-
-        const semuaData = Array.isArray(hasil.data) ? hasil.data : [];
-        if (!semuaData.length) {
-            target.innerHTML =
-                '<p class="text-slate-500">Belum ada data absensi.</p>';
-            return;
-        }
-
-        const headers = Array.isArray(semuaData[0])
-            ? semuaData[0].map(function (h) {
-                return String(h || "").trim();
+        // Kedua permintaan berjalan bersamaan dan backend hanya mengirim periode terpilih.
+        const [hasilAbsensi, hasilIzin] = await Promise.all([
+            apiPost({
+                action: "absensi_list",
+                filter_bulan: bulan,
+                filter_tahun: tahun
+            }),
+            apiPost({
+                action: "izin_list",
+                filter_bulan: bulan,
+                filter_tahun: tahun,
+                hanya_disetujui: true
             })
-            : [];
+        ]);
 
+        if (hasilAbsensi.status !== "sukses") {
+            throw new Error(hasilAbsensi.pesan || "Data absensi gagal dimuat.");
+        }
+        if (hasilIzin.status !== "sukses") {
+            throw new Error(hasilIzin.pesan || "Data izin gagal dimuat.");
+        }
+
+        const semuaData = Array.isArray(hasilAbsensi.data) ? hasilAbsensi.data : [];
+        const headers = Array.isArray(semuaData[0])
+            ? semuaData[0].map(h => String(h || "").trim())
+            : [];
         const barisData = semuaData.slice(1);
-        const rekap = {
-            Hadir: 0,
-            Terlambat: 0,
-            Izin: 0,
-            Sakit: 0,
-            Alpa: 0,
-            Lainnya: 0,
-            "Pulang Duluan": 0,
-            "Pulang Normal": 0,
-            "Pulang Terlambat": 0
-        };
 
         const cocok = barisData.filter(function (baris) {
             const tanggal = tanggalLaporanValid(
                 kolomLaporanAbsensi(baris, headers, "Tanggal")
             );
-
-            if (!tanggal || tanggal.bulan !== bulan ||
-                tanggal.tahun !== tahun) {
+            if (!tanggal || tanggal.bulan !== bulan || tanggal.tahun !== tahun) {
                 return false;
             }
-
             if (kodeLembaga) {
                 const kode = String(
                     kolomLaporanAbsensi(baris, headers, "Kode_Lembaga") || ""
                 ).trim();
-
-                if (kode.toLowerCase() !== kodeLembaga.toLowerCase()) {
-                    return false;
-                }
+                if (kode.toLowerCase() !== kodeLembaga.toLowerCase()) return false;
             }
-
             return true;
         });
 
-        cocok.forEach(function (baris) {
-            const status = String(
-                kolomLaporanAbsensi(baris, headers, "Status") || ""
-            ).trim().toLowerCase();
-
-            if (status === "hadir") rekap.Hadir++;
-            else if (status === "terlambat") rekap.Terlambat++;
-            else if (status === "izin") rekap.Izin++;
-            else if (status === "sakit") rekap.Sakit++;
-            else if (status === "alpa" || status === "alfa") rekap.Alpa++;
-            else rekap.Lainnya++;
-
-            const pulang = String(kolomLaporanAbsensi(baris, headers, "Status_Pulang") || "").trim();
-            if (Object.prototype.hasOwnProperty.call(rekap, pulang)) rekap[pulang]++;
-        });
-
-        laporanAbsensiBulananCache = cocok.map(function (baris) {
+        // Normalisasi menjadi satu format agar data izin dan absensi bisa direkap bersama.
+        const laporan = cocok.map(function (baris) {
             return {
                 tanggal: kolomLaporanAbsensi(baris, headers, "Tanggal"),
+                idPegawai: String(kolomLaporanAbsensi(baris, headers, "ID_Pegawai") || "").trim(),
                 nama: kolomLaporanAbsensi(baris, headers, "Nama_Pegawai"),
                 kode: kolomLaporanAbsensi(baris, headers, "Kode_Lembaga"),
                 status: kolomLaporanAbsensi(baris, headers, "Status"),
@@ -3940,6 +3914,127 @@ async function muatLaporanAbsensiBulanan() {
             };
         });
 
+        function kunciPegawai(id, nama, kode) {
+            return (String(id || "").trim().toLowerCase() ||
+                (String(nama || "").trim().toLowerCase() + "|" +
+                 String(kode || "").trim().toLowerCase()));
+        }
+
+        function tanggalISO(tanggal) {
+            const p = tanggalLaporanValid(tanggal);
+            if (!p) return "";
+            return String(p.tahun).padStart(4, "0") + "-" +
+                String(p.bulan).padStart(2, "0") + "-" +
+                String(p.hari).padStart(2, "0");
+        }
+
+        // Catatan absensi yang sudah ada dipakai sebagai prioritas agar tidak terjadi hitung ganda.
+        const indeksCatatan = new Map();
+        laporan.forEach(function (baris, i) {
+            indeksCatatan.set(
+                kunciPegawai(baris.idPegawai, baris.nama, baris.kode) + "|" +
+                tanggalISO(baris.tanggal),
+                i
+            );
+        });
+
+        const daftarIzin = Array.isArray(hasilIzin.data) ? hasilIzin.data : [];
+        daftarIzin.forEach(function (izin) {
+            const statusIzin = String(izin.status || "").trim().toLowerCase();
+            if (statusIzin !== "disetujui") return;
+
+            const kode = String(izin.kode_lembaga || "").trim();
+            if (kodeLembaga && kode.toLowerCase() !== kodeLembaga.toLowerCase()) return;
+
+            const mulai = tanggalLaporanValid(izin.tanggal_mulai);
+            const selesai = tanggalLaporanValid(izin.tanggal_selesai);
+            if (!mulai || !selesai) return;
+
+            const tanggalMulai = new Date(mulai.tahun, mulai.bulan - 1, mulai.hari);
+            const tanggalSelesai = new Date(selesai.tahun, selesai.bulan - 1, selesai.hari);
+            const awalBulan = new Date(tahun, bulan - 1, 1);
+            const akhirBulan = new Date(tahun, bulan, 0);
+            const awal = new Date(Math.max(tanggalMulai.getTime(), awalBulan.getTime()));
+            const akhir = new Date(Math.min(tanggalSelesai.getTime(), akhirBulan.getTime()));
+            if (awal > akhir) return;
+
+            const jenis = String(izin.jenis_izin || "").trim().toLowerCase();
+            const statusLaporan = jenis.includes("sakit") ? "Sakit" : "Izin";
+            const idPegawai = String(izin.id_pegawai || "").trim();
+            const nama = String(izin.nama_pegawai || "").trim();
+            const kunciDasar = kunciPegawai(idPegawai, nama, kode);
+
+            for (let t = new Date(awal); t <= akhir; t.setDate(t.getDate() + 1)) {
+                const tanggal = t.getFullYear() + "-" +
+                    String(t.getMonth() + 1).padStart(2, "0") + "-" +
+                    String(t.getDate()).padStart(2, "0");
+                const kunci = kunciDasar + "|" + tanggal;
+                const idx = indeksCatatan.get(kunci);
+
+                if (idx !== undefined) {
+                    // Jika sudah hadir/terlambat, pertahankan absensi aktual.
+                    const statusAktual = String(laporan[idx].status || "").trim().toLowerCase();
+                    if (!["hadir", "terlambat"].includes(statusAktual)) {
+                        laporan[idx].status = statusLaporan;
+                        laporan[idx].keterangan = [
+                            laporan[idx].keterangan,
+                            "Pengajuan " + statusLaporan.toLowerCase() + " disetujui: " +
+                                String(izin.alasan || "")
+                        ].filter(Boolean).join(" — ");
+                    }
+                    continue;
+                }
+
+                const barisBaru = {
+                    tanggal: tanggal,
+                    idPegawai: idPegawai,
+                    nama: nama,
+                    kode: kode,
+                    status: statusLaporan,
+                    statusPulang: "",
+                    masuk: "",
+                    pulang: "",
+                    alasan: "",
+                    keteranganTerlambat: "",
+                    keterangan: "Pengajuan " + statusLaporan.toLowerCase() +
+                        " disetujui: " + String(izin.alasan || "")
+                };
+                indeksCatatan.set(kunci, laporan.length);
+                laporan.push(barisBaru);
+            }
+        });
+
+        laporan.sort(function (a, b) {
+            return tanggalISO(a.tanggal).localeCompare(tanggalISO(b.tanggal)) ||
+                String(a.nama || "").localeCompare(String(b.nama || ""), "id");
+        });
+
+        const rekap = {
+            Hadir: 0,
+            Terlambat: 0,
+            Izin: 0,
+            Sakit: 0,
+            Alpa: 0,
+            Lainnya: 0,
+            "Pulang Duluan": 0,
+            "Pulang Normal": 0,
+            "Pulang Terlambat": 0
+        };
+
+        laporan.forEach(function (baris) {
+            const status = String(baris.status || "").trim().toLowerCase();
+            if (status === "hadir") rekap.Hadir++;
+            else if (status === "terlambat") rekap.Terlambat++;
+            else if (status === "izin") rekap.Izin++;
+            else if (status === "sakit") rekap.Sakit++;
+            else if (status === "alpa" || status === "alfa") rekap.Alpa++;
+            else rekap.Lainnya++;
+
+            const pulang = String(baris.statusPulang || "").trim();
+            if (Object.prototype.hasOwnProperty.call(rekap, pulang)) rekap[pulang]++;
+        });
+
+        laporanAbsensiBulananCache = laporan;
         const namaBulan = [
             "Januari", "Februari", "Maret", "April", "Mei", "Juni",
             "Juli", "Agustus", "September", "Oktober", "November", "Desember"
@@ -3956,38 +4051,33 @@ async function muatLaporanAbsensiBulanan() {
                     <p class="text-sm">${escapeHTML(namaBulan)} ${tahun}</p>
                     <p class="text-sm">Lembaga: ${escapeHTML(namaLembaga)}</p>
                 </div>
-
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     ${Object.entries(rekap).map(function ([nama, jumlah]) {
-                        return `
-                            <div class="rounded-xl border bg-slate-50 p-4">
-                                <p class="text-xs text-slate-500">${nama}</p>
-                                <p class="text-2xl font-black">${jumlah}</p>
-                            </div>`;
+                        return `<div class="rounded-xl border bg-slate-50 p-4">
+                            <p class="text-xs text-slate-500">${nama}</p>
+                            <p class="text-2xl font-black">${jumlah}</p>
+                        </div>`;
                     }).join("")}
                 </div>
-
                 <p class="text-sm text-slate-600">
-                    Total catatan absensi: <strong>${cocok.length}</strong>.
-                    Rekap menghitung catatan yang tersimpan, bukan hari kerja
-                    tanpa catatan absensi.
+                    Total catatan absensi dan izin disetujui:
+                    <strong>${laporan.length}</strong>.
+                    Izin dihitung per hari dalam rentang tanggal yang disetujui.
+                    Catatan hadir/terlambat yang sudah ada tidak dihitung ganda.
                 </p>
-
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-xs md:text-sm border-collapse">
-                        <thead>
-                            <tr class="bg-slate-100 text-left">
-                                <th class="border p-2">No.</th>
-                                <th class="border p-2">Tanggal</th>
-                                <th class="border p-2">Nama Pegawai</th>
-                                <th class="border p-2">Kode Lembaga</th>
-                                <th class="border p-2">Status Masuk</th>
-                                <th class="border p-2">Jam Masuk</th>
-                                <th class="border p-2">Status Pulang</th>
-                                <th class="border p-2">Jam Pulang</th>
-                                <th class="border p-2">Alasan / Keterangan Terlambat</th>
-                            </tr>
-                        </thead>
+                        <thead><tr class="bg-slate-100 text-left">
+                            <th class="border p-2">No.</th>
+                            <th class="border p-2">Tanggal</th>
+                            <th class="border p-2">Nama Pegawai</th>
+                            <th class="border p-2">Kode Lembaga</th>
+                            <th class="border p-2">Status Masuk</th>
+                            <th class="border p-2">Jam Masuk</th>
+                            <th class="border p-2">Status Pulang</th>
+                            <th class="border p-2">Jam Pulang</th>
+                            <th class="border p-2">Alasan / Keterangan Terlambat</th>
+                        </tr></thead>
                         <tbody>
                             ${laporanAbsensiBulananCache.map(function (b, i) {
                                 return `<tr>
@@ -3996,18 +4086,19 @@ async function muatLaporanAbsensiBulanan() {
                                     <td class="border p-2">${escapeHTML(b.nama)}</td>
                                     <td class="border p-2">${escapeHTML(b.kode)}</td>
                                     <td class="border p-2">${escapeHTML(b.status)}</td>
-                                    <td class="border p-2">${escapeHTML(b.masuk)}</td>
+                                    <td class="border p-2">${escapeHTML(b.masuk || "—")}</td>
                                     <td class="border p-2">${escapeHTML(b.statusPulang || "Belum tercatat")}</td>
-                                    <td class="border p-2">${escapeHTML(b.pulang)}</td>
-                                    <td class="border p-2">${escapeHTML([b.alasan,b.keteranganTerlambat,b.keterangan].filter(Boolean).join(" — ") || "—")}</td>
+                                    <td class="border p-2">${escapeHTML(b.pulang || "—")}</td>
+                                    <td class="border p-2">${escapeHTML([
+                                        b.alasan, b.keteranganTerlambat, b.keterangan
+                                    ].filter(Boolean).join(" — ") || "—")}</td>
                                 </tr>`;
                             }).join("")}
-                            ${cocok.length ? "" : `
-                                <tr>
-                                    <td colspan="9" class="border p-4 text-center text-slate-500">
-                                        Tidak ada catatan absensi pada periode ini.
-                                    </td>
-                                </tr>`}
+                            ${laporan.length ? "" : `<tr>
+                                <td colspan="9" class="border p-4 text-center text-slate-500">
+                                    Tidak ada catatan absensi atau izin disetujui pada periode ini.
+                                </td>
+                            </tr>`}
                         </tbody>
                     </table>
                 </div>
