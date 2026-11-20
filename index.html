@@ -3695,6 +3695,8 @@ function renderRiwayatAbsensi() {
         statusPulang: ambil(b, "Status_Pulang", -1),
         alasan: ambil(b, "Alasan_Terlambat", -1),
         keteranganTerlambat: ambil(b, "Keterangan_Terlambat", -1),
+        alasanPulangDuluan: ambil(b, "Alasan_Pulang_Duluan", -1),
+        keteranganPulangDuluan: ambil(b, "Keterangan_Pulang_Duluan", -1),
         keterangan: ambil(b, "Keterangan", 9)
     }));
 
@@ -3913,6 +3915,8 @@ async function muatLaporanAbsensiBulanan() {
                 pulang: kolomLaporanAbsensi(baris, headers, "Jam_Pulang"),
                 alasan: kolomLaporanAbsensi(baris, headers, "Alasan_Terlambat"),
                 keteranganTerlambat: kolomLaporanAbsensi(baris, headers, "Keterangan_Terlambat"),
+                alasanPulangDuluan: kolomLaporanAbsensi(baris, headers, "Alasan_Pulang_Duluan"),
+                keteranganPulangDuluan: kolomLaporanAbsensi(baris, headers, "Keterangan_Pulang_Duluan"),
                 keterangan: kolomLaporanAbsensi(baris, headers, "Keterangan")
             };
         });
@@ -5179,8 +5183,16 @@ async function mulaiScanAbsensiGuru() {
           // Jika server mendeteksi scan masuk setelah 07.10 WIB, minta alasan
           // dan penjelasan sebelum mengirim ulang scan yang sama. Server belum
           // menyimpan absensi pada tahap ini, sehingga tidak membuat data ganda.
-          if (hasil && hasil.status === "perlu_alasan" && hasil.mode === "masuk") {
-            const pilihanAlasan = [
+          if (hasil && hasil.status === "perlu_alasan" && (hasil.mode === "masuk" || hasil.mode === "pulang")) {
+            const modePulang = hasil.mode === "pulang";
+            const pilihanAlasan = modePulang ? [
+              "Tugas atau kegiatan kedinasan",
+              "Rapat atau kegiatan di luar lembaga",
+              "Keperluan keluarga",
+              "Kondisi kesehatan",
+              "Keperluan pribadi",
+              "Lainnya"
+            ] : [
               "Kendala kendaraan atau perjalanan",
               "Kecelakaan atau musibah di jalan",
               "Urusan keluarga",
@@ -5189,17 +5201,22 @@ async function mulaiScanAbsensiGuru() {
               "Keperluan pribadi",
               "Lainnya"
             ];
+            const judulKonfirmasi = modePulang ? "Konfirmasi Pulang Lebih Awal" : "Konfirmasi Keterlambatan";
+            const labelAlasan = modePulang ? "Alasan pulang lebih awal" : "Alasan keterlambatan";
+            const labelKeterangan = modePulang ? "Keterangan / penjelasan pulang lebih awal" : "Keterangan / penjelasan keterlambatan";
+            const idAlasan = modePulang ? "alasanPulangDuluanQR" : "alasanTerlambatQR";
+            const idKeterangan = modePulang ? "keteranganPulangDuluanQR" : "keteranganTerlambatQR";
             let isian = null;
             if (window.Swal) {
               const opsi = pilihanAlasan.map(x => `<option value="${escapeHTML(x)}">${escapeHTML(x)}</option>`).join("");
               const dialog = await Swal.fire({
-                title: "Konfirmasi Keterlambatan",
+                title: judulKonfirmasi,
                 html: `
-                  <p style="text-align:left;margin:0 0 12px;color:#475569">${escapeHTML(hasil.pesan || "Anda terlambat. Silakan isi alasan dan penjelasan.")}</p>
-                  <label for="alasanTerlambatQR" style="display:block;text-align:left;font-weight:700;margin:10px 0 6px">Alasan keterlambatan <span style="color:#dc2626">*</span></label>
-                  <select id="alasanTerlambatQR" class="swal2-select" style="display:flex;width:100%;margin:0 0 12px"><option value="">-- Pilih alasan --</option>${opsi}</select>
-                  <label for="keteranganTerlambatQR" style="display:block;text-align:left;font-weight:700;margin:8px 0 6px">Keterangan / penjelasan <span style="color:#dc2626">*</span></label>
-                  <textarea id="keteranganTerlambatQR" class="swal2-textarea" maxlength="1000" placeholder="Jelaskan penyebab keterlambatan Anda..." style="display:flex;width:100%;margin:0;min-height:110px"></textarea>
+                  <p style="text-align:left;margin:0 0 12px;color:#475569">${escapeHTML(hasil.pesan || "Silakan isi alasan dan keterangan.")}</p>
+                  <label for="${idAlasan}" style="display:block;text-align:left;font-weight:700;margin:10px 0 6px">${labelAlasan} <span style="color:#dc2626">*</span></label>
+                  <select id="${idAlasan}" class="swal2-select" style="display:flex;width:100%;margin:0 0 12px"><option value="">-- Pilih alasan --</option>${opsi}</select>
+                  <label for="${idKeterangan}" style="display:block;text-align:left;font-weight:700;margin:8px 0 6px">${labelKeterangan} <span style="color:#dc2626">*</span></label>
+                  <textarea id="${idKeterangan}" class="swal2-textarea" maxlength="1000" placeholder="Jelaskan alasan Anda..." style="display:flex;width:100%;margin:0;min-height:110px"></textarea>
                 `,
                 focusConfirm: false,
                 showCancelButton: true,
@@ -5207,34 +5224,35 @@ async function mulaiScanAbsensiGuru() {
                 cancelButtonText: "Batal",
                 confirmButtonColor: "#047857",
                 preConfirm: () => {
-                  const alasan = document.getElementById("alasanTerlambatQR")?.value.trim() || "";
-                  const keterangan = document.getElementById("keteranganTerlambatQR")?.value.trim() || "";
-                  if (!alasan) { Swal.showValidationMessage("Silakan pilih alasan keterlambatan."); return false; }
-                  if (!keterangan) { Swal.showValidationMessage("Keterangan keterlambatan wajib diisi."); return false; }
+                  const alasan = document.getElementById(idAlasan)?.value.trim() || "";
+                  const keterangan = document.getElementById(idKeterangan)?.value.trim() || "";
+                  if (!alasan) { Swal.showValidationMessage("Silakan pilih alasan."); return false; }
+                  if (!keterangan) { Swal.showValidationMessage("Keterangan wajib diisi."); return false; }
                   if (keterangan.length > 1000) { Swal.showValidationMessage("Keterangan maksimal 1.000 karakter."); return false; }
                   return { alasan, keterangan };
                 }
               });
               if (dialog.isConfirmed) isian = dialog.value;
             } else {
-              const alasan = prompt("Alasan keterlambatan:\n" + pilihanAlasan.map((x,i)=>(i+1)+". "+x).join("\n") + "\nMasukkan nomor pilihan (1-7):");
-              const nomor = Number(alasan);
+              const pilihan = prompt("Pilih alasan:\n" + pilihanAlasan.map((x,i)=>(i+1)+". "+x).join("\n") + "\nMasukkan nomor pilihan:");
+              const nomor = Number(pilihan);
               if (Number.isInteger(nomor) && nomor >= 1 && nomor <= pilihanAlasan.length) {
-                const keterangan = prompt("Jelaskan penyebab keterlambatan Anda:");
+                const keterangan = prompt("Jelaskan alasan Anda:");
                 if (keterangan && keterangan.trim()) isian = { alasan: pilihanAlasan[nomor-1], keterangan: keterangan.trim() };
               }
             }
             if (!isian) {
-              if (status) status.textContent = "Absensi belum disimpan. Silakan mulai scan kembali dan isi alasan serta keterangan keterlambatan.";
+              if (status) status.textContent = "Absensi belum disimpan. Silakan scan kembali dan lengkapi alasan serta keterangan.";
               return;
             }
-            if (status) status.textContent = "Menyimpan absensi beserta alasan keterlambatan...";
-            hasil = await apiPost({
+            if (status) status.textContent = "Menyimpan absensi beserta alasan...";
+            const payloadAlasan = modePulang
+              ? { alasan_pulang_duluan: isian.alasan, keterangan_pulang_duluan: isian.keterangan }
+              : { alasan_terlambat: isian.alasan, keterangan_terlambat: isian.keterangan };
+            hasil = await apiPost(Object.assign({
               action: "barcode_absensi_scan",
-              token_qr: teksQR,
-              alasan_terlambat: isian.alasan,
-              keterangan_terlambat: isian.keterangan
-            });
+              token_qr: teksQR
+            }, payloadAlasan));
           }
 
           if (!hasil || hasil.status !== "sukses") {
