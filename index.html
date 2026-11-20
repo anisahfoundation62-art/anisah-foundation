@@ -4083,7 +4083,7 @@ async function muatLaporanAbsensiBulanan() {
                             <th class="border p-2">Jam Masuk</th>
                             <th class="border p-2">Status Pulang</th>
                             <th class="border p-2">Jam Pulang</th>
-                            <th class="border p-2">Alasan / Keterangan Terlambat</th>
+                            <th class="border p-2">Alasan / Keterangan</th>
                         </tr></thead>
                         <tbody>
                             ${laporanAbsensiBulananCache.map(function (b, i) {
@@ -4096,9 +4096,19 @@ async function muatLaporanAbsensiBulanan() {
                                     <td class="border p-2">${escapeHTML(b.masuk || "—")}</td>
                                     <td class="border p-2">${escapeHTML(b.statusPulang || "Belum tercatat")}</td>
                                     <td class="border p-2">${escapeHTML(b.pulang || "—")}</td>
-                                    <td class="border p-2">${escapeHTML([
-                                        b.alasan, b.keteranganTerlambat, b.keterangan
-                                    ].filter(Boolean).join(" — ") || "—")}</td>
+                                    <td class="border p-2">
+                                        ${[
+                                            (b.alasan || b.keteranganTerlambat)
+                                                ? `<div><strong>Terlambat masuk:</strong> ${escapeHTML([b.alasan, b.keteranganTerlambat].filter(Boolean).join(" — "))}</div>`
+                                                : "",
+                                            (b.alasanPulangDuluan || b.keteranganPulangDuluan)
+                                                ? `<div class="mt-1"><strong>Pulang duluan:</strong> ${escapeHTML([b.alasanPulangDuluan, b.keteranganPulangDuluan].filter(Boolean).join(" — "))}</div>`
+                                                : "",
+                                            b.keterangan
+                                                ? `<div class="mt-1"><strong>Keterangan lain:</strong> ${escapeHTML(b.keterangan)}</div>`
+                                                : ""
+                                        ].filter(Boolean).join("") || "—"}
+                                    </td>
                                 </tr>`;
                             }).join("")}
                             ${laporan.length ? "" : `<tr>
